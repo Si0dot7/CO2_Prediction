@@ -75,32 +75,42 @@ def save_current_to_old_data(df_current: pd.DataFrame):
 # 2. FEATURE ENGINEERING (เหมือนเดิม)
 # ─────────────────────────────────────────
 def add_features(df: pd.DataFrame) -> pd.DataFrame:
-    required = {"lag1", "lag2", "growth", "rolling_mean"}
+    required = {"lag1", "lag2", "lag3", "rolling_mean_3", "rolling_std_3", "growth"}
     if required.issubset(df.columns):
         return df.sort_values(["province", "year"]).reset_index(drop=True)
+
     df = df.sort_values(["province", "year"]).reset_index(drop=True)
     grp = df.groupby("province")["CO2_tonnes"]
+
     df["lag1"] = grp.shift(1)
     df["lag2"] = grp.shift(2)
-    df["growth"] = grp.pct_change()
-    df["rolling_mean"] = grp.transform(lambda x: x.rolling(3, min_periods=1).mean())
-    
-    df = df.dropna(subset=['lag1', 'lag2']).reset_index(drop=True)
+    df["lag3"] = grp.shift(3)
+
+    df["rolling_mean_3"] = grp.transform(lambda x: x.rolling(3, min_periods=1).mean())
+    df["rolling_std_3"] = grp.transform(lambda x: x.rolling(3, min_periods=1).std()).fillna(0)
+
+    df["growth"] = grp.pct_change().fillna(0).clip(-1, 1)
+
+    df = df.dropna(subset=['lag1', 'lag2', 'lag3']).reset_index(drop=True)
     return df
 
 # ─────────────────────────────────────────
 # 3. ENCODE & SCALE (เหมือนเดิม)
 # ─────────────────────────────────────────
 def encode_and_scale(df: pd.DataFrame):
-    # ถ้ายังมี NaN ใน lag1/lag2 ให้เติม median (เผื่อไว้)
+    # เติม NaN ที่อาจเกิดจาก rolling std
     df["lag1"] = df.groupby("province")["lag1"].transform(lambda x: x.fillna(x.median()))
     df["lag2"] = df.groupby("province")["lag2"].transform(lambda x: x.fillna(x.median()))
-    
+    df["lag3"] = df.groupby("province")["lag3"].transform(lambda x: x.fillna(x.median()))
+    df["rolling_mean_3"] = df["rolling_mean_3"].fillna(df["CO2_tonnes"])
+    df["rolling_std_3"] = df["rolling_std_3"].fillna(0)
+
     encoder = ce.BinaryEncoder(cols=["province"])
     df_enc = encoder.fit_transform(df)
-    df_enc["growth"] = df_enc["growth"].fillna(0).clip(-1, 1)  
-    
-    num_cols = ["CO2_tonnes", "lag1", "lag2", "growth", "rolling_mean"]
+    df_enc["growth"] = df_enc["growth"].fillna(0).clip(-1, 1)
+
+    num_cols = ["CO2_tonnes", "lag1", "lag2", "lag3",
+                "rolling_mean_3", "rolling_std_3", "growth"]
     scaler = MinMaxScaler()
     df_enc[num_cols] = scaler.fit_transform(df_enc[num_cols])
     return df_enc, encoder, scaler
@@ -109,7 +119,8 @@ def encode_and_scale(df: pd.DataFrame):
 # 4. ANOMALY DETECTION (เหมือนเดิม)
 # ─────────────────────────────────────────
 def detect_anomalies(df: pd.DataFrame, n_estimators: int = 200, contamination: float = 0.05) -> pd.DataFrame:
-    features = ["CO2_tonnes", "lag1", "lag2", "growth", "rolling_mean"]
+    features = ["CO2_tonnes", "lag1", "lag2", "lag3",
+                "rolling_mean_3", "rolling_std_3", "growth"]
     iso = IsolationForest(n_estimators=n_estimators, contamination=contamination, random_state=42)
     df = df.copy()
     df["anomaly"] = iso.fit_predict(df[features])
@@ -125,31 +136,54 @@ def train_and_evaluate(df: pd.DataFrame, scaler: MinMaxScaler, encoder: ce.Binar
     unique_years = sorted(df["year"].unique())
     test_years_list = unique_years[-test_years:]
     train_years_list = unique_years[:-test_years]
-    print(f"Train years: {train_years_list}")
-    print(f"Test years: {test_years_list}")
+
     train = df[df["year"].isin(train_years_list)].copy()
     test = df[df["year"].isin(test_years_list)].copy()
-    model_eval = XGBRegressor(n_estimators=300, learning_rate=0.01, max_depth=5, random_state=42)
+
+    # 🔥 ปรับ hyperparameters ให้โมเดลซับซ้อนขึ้น
+    model_eval = XGBRegressor(
+        n_estimators=500,
+        learning_rate=0.03,
+        max_depth=7,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        reg_alpha=0.1,
+        reg_lambda=1.0,
+        random_state=42
+    )
     model_eval.fit(train.drop(columns=drop_cols), train[target])
+
     preds_scaled = model_eval.predict(test.drop(columns=drop_cols))
     mape = mean_absolute_percentage_error(test[target], preds_scaled)
     r2 = r2_score(test[target], preds_scaled)
-    print(f"Evaluation on {test_years} latest years - MAPE: {mape:.4f} | R²: {r2:.4f}")
-    num_cols = [target, "lag1", "lag2", "growth", "rolling_mean"]
+
+    # ... (ส่วน inverse transform คงเดิม แต่ต้องอัปเดต num_cols)
+    num_cols = ["CO2_tonnes", "lag1", "lag2", "lag3",
+                "rolling_mean_3", "rolling_std_3", "growth"]
     test_real = test.copy()
     test_real[num_cols] = scaler.inverse_transform(test[num_cols])
     preds_inv_df = test[num_cols].copy()
     preds_inv_df[target] = preds_scaled
     preds_real = scaler.inverse_transform(preds_inv_df)[:, 0]
+
     test_decoded = encoder.inverse_transform(test_real.drop(columns=["anomaly", "preds"], errors="ignore"))
     test_decoded["preds"] = preds_real
     result = test_decoded[["province", "year", target, "preds"]].reset_index(drop=True)
-    print("Training final model with all data...")
-    model_final = XGBRegressor(n_estimators=300, learning_rate=0.01, max_depth=5, random_state=42)
+
+    # โมเดล final ใช้ hyperparameters เดียวกัน
+    model_final = XGBRegressor(
+        n_estimators=500,
+        learning_rate=0.03,
+        max_depth=7,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        reg_alpha=0.1,
+        reg_lambda=1.0,
+        random_state=42
+    )
     model_final.fit(df.drop(columns=drop_cols), df[target])
-    unique_years = sorted(df["year"].unique())
-    print("Years in training data:", unique_years)
-    return result, model_final ,mape,r2
+
+    return result, model_final, mape, r2
 
 # ─────────────────────────────────────────
 # 6. PREDICT NEXT YEAR (ปรับให้รับ combined_data)
@@ -167,21 +201,29 @@ def predict_next_year(model, encoder, scaler, combined_data, n_years=1) -> pd.Da
         rows = []
         for province, grp in df_feat.sort_values("year").groupby("province"):
             grp = grp.sort_values("year")
-            co2_values = grp["CO2_tonnes"].values
-            lag1 = co2_values[-1]
-            lag2 = co2_values[-2] if len(co2_values) >= 2 else lag1
+            co2 = grp["CO2_tonnes"].values
+            lag1 = co2[-1]
+            lag2 = co2[-2] if len(co2) >= 2 else lag1
+            lag3 = co2[-3] if len(co2) >= 3 else lag2
             growth = (lag1 - lag2) / lag2 if lag2 != 0 else 0
-            rolling_mean = co2_values[-3:].mean() if len(co2_values) >= 3 else co2_values.mean()
+            rolling_mean_3 = co2[-3:].mean()
+            rolling_std_3 = co2[-3:].std() if len(co2) >= 2 else 0
+
             rows.append({
                 "province": province, "year": next_year, "CO2_tonnes": 0,
-                "lag1": lag1, "lag2": lag2, "growth": growth, "rolling_mean": rolling_mean
+                "lag1": lag1, "lag2": lag2, "lag3": lag3,
+                "rolling_mean_3": rolling_mean_3, "rolling_std_3": rolling_std_3,
+                "growth": growth
             })
 
         df_next = pd.DataFrame(rows)
         df_enc = encoder.transform(df_next)
         df_enc["growth"] = df_enc["growth"].clip(-1, 1)
-        num_cols = ["CO2_tonnes", "lag1", "lag2", "growth", "rolling_mean"]
+
+        num_cols = ["CO2_tonnes", "lag1", "lag2", "lag3",
+                    "rolling_mean_3", "rolling_std_3", "growth"]
         df_enc[num_cols] = scaler.transform(df_enc[num_cols])
+
         X_next = df_enc.drop(columns=["CO2_tonnes", "anomaly"], errors="ignore")
         preds_scaled = model.predict(X_next)
 
@@ -193,7 +235,6 @@ def predict_next_year(model, encoder, scaler, combined_data, n_years=1) -> pd.Da
         result["preds"] = preds_real
         all_preds.append(result)
 
-        # ต่อค่าทำนายเข้า current_data เพื่อใช้ทำนายปีถัดไป
         new_rows = df_next[["province", "year"]].copy()
         new_rows["CO2_tonnes"] = preds_real
         current_data = pd.concat([current_data, new_rows], ignore_index=True)
@@ -230,7 +271,8 @@ def run_pipeline(current_year_path: str, n_years: int = 1, start_year: int = Non
     print("── 3. Feature engineering ───────────")
     df_feat = add_features(combined)
     print("Years after add_features:", sorted(df_feat["year"].unique()))
-    required_cols = ["province", "year", "CO2_tonnes", "lag1", "lag2", "growth", "rolling_mean"]
+    required_cols = ["province", "year", "CO2_tonnes", "lag1", "lag2", "lag3",
+                 "rolling_mean_3", "rolling_std_3", "growth"]
     df_feat = df_feat[required_cols]
 
     print("── 4. Encode & scale ────────────────")
@@ -238,7 +280,7 @@ def run_pipeline(current_year_path: str, n_years: int = 1, start_year: int = Non
     print("Years after encode_and_scale:", sorted(df_enc["year"].unique()))
 
     print("── 5. Anomaly detection ─────────────")
-    df_enc = detect_anomalies(df_enc)
+    df_enc = detect_anomalies(df_enc, contamination=0.01)
 
     print("── 6. Train & evaluate ──────────────")
     result, model ,mape,r2 = train_and_evaluate(df_enc, scaler, encoder)
@@ -271,14 +313,15 @@ def run_pipeline_without_current(n_years: int = 1, start_year: int = None, end_y
 
     print("── 2. Feature engineering ───────────")
     df_feat = add_features(combined)
-    required_cols = ["province", "year", "CO2_tonnes", "lag1", "lag2", "growth", "rolling_mean"]
+    required_cols = ["province", "year", "CO2_tonnes", "lag1", "lag2", "lag3",
+                 "rolling_mean_3", "rolling_std_3", "growth"]
     df_feat = df_feat[required_cols]
 
     print("── 3. Encode & scale ────────────────")
     df_enc, encoder, scaler = encode_and_scale(df_feat)
 
     print("── 4. Anomaly detection ─────────────")
-    df_enc = detect_anomalies(df_enc)
+    df_enc = detect_anomalies(df_enc, contamination=0.01)
 
     print("── 5. Train & evaluate ──────────────")
     result, model, mape, r2 = train_and_evaluate(df_enc, scaler, encoder)
