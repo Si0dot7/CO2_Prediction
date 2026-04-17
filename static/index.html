@@ -120,7 +120,6 @@
         text-align: center;
         transition: all 0.2s;
       }
-      /* การ์ดผลรวมรายปี */
       .year-summary-cards {
         display: flex;
         flex-wrap: wrap;
@@ -186,7 +185,6 @@
         border-radius: 2rem;
         padding: 0.5rem;
       }
-      /* input number สำหรับจำนวนปี */
       .n-years-input {
         width: 80px;
         border: 2px solid #b9dfb9;
@@ -202,6 +200,18 @@
         outline: none;
         box-shadow: 0 0 0 3px rgba(27, 94, 32, 0.15);
       }
+      /* ปรับแต่ง select multiple */
+      #provinceSelect {
+        border: 1px solid #ced4da;
+        border-radius: 0.5rem;
+        padding: 0.375rem 0.75rem;
+        font-size: 0.95rem;
+        background-color: white;
+      }
+      #provinceSelect option:checked {
+        background: var(--primary-green);
+        color: white;
+      }
       @media (max-width: 768px) {
         .total-co2 {
           font-size: 1.5rem;
@@ -216,15 +226,11 @@
           <i class="bi bi-tree-fill fs-2 me-2"></i>
           <div>
             <span class="fw-bold">กรมการเปลี่ยนแปลงสภาพภูมิอากาศ</span><br />
-            <small class="text-light-emphasis"
-              >Department of Climate Change</small
-            >
+            <small class="text-light-emphasis">Department of Climate Change</small>
           </div>
         </a>
         <div class="d-flex">
-          <span class="gov-badge"
-            ><i class="bi bi-bar-chart-steps"></i> คาดการณ์ CO₂</span
-          >
+          <span class="gov-badge"><i class="bi bi-bar-chart-steps"></i> คาดการณ์ CO₂</span>
         </div>
       </div>
     </nav>
@@ -232,13 +238,8 @@
     <div class="container py-4">
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb bg-transparent">
-          <li class="breadcrumb-item">
-            <a href="#" class="text-decoration-none text-secondary">หน้าแรก</a>
-          </li>
-          <li
-            class="breadcrumb-item active text-success fw-semibold"
-            aria-current="page"
-          >
+          <li class="breadcrumb-item"><a href="#" class="text-decoration-none text-secondary">หน้าแรก</a></li>
+          <li class="breadcrumb-item active text-success fw-semibold" aria-current="page">
             ระบบคาดการณ์การปล่อย CO₂ รายจังหวัด
           </li>
         </ol>
@@ -246,8 +247,7 @@
 
       <div class="text-center mb-4">
         <h1 class="display-6 fw-bold" style="color: #1b4d1b">
-          <i class="bi bi-cloud-sun-fill me-2"></i
-          >ระบบคาดการณ์ก๊าซคาร์บอนไดออกไซด์
+          <i class="bi bi-cloud-sun-fill me-2"></i>ระบบคาดการณ์ก๊าซคาร์บอนไดออกไซด์
         </h1>
         <p class="text-muted">
           คาดการณ์ปริมาณการปล่อย CO₂ จากข้อมูลประวัติและโมเดล Machine Learning
@@ -260,98 +260,45 @@
           <div class="card card-custom p-4 upload-area">
             <div class="d-flex align-items-center mb-2">
               <i class="bi bi-upload fs-3 me-2 text-success"></i>
-              <h5 class="card-title mb-0 fw-semibold">
-                นำเข้าข้อมูลปีปัจจุบัน
-              </h5>
+              <h5 class="card-title mb-0 fw-semibold">นำเข้าข้อมูลปีปัจจุบัน</h5>
             </div>
             <p class="text-muted small">
-              รูปแบบไฟล์ <code>.csv</code> ต้องมีคอลัมน์:
-              <code>province, CO2_tonnes</code> (และ <code>year</code> ถ้ามี)
+              รูปแบบไฟล์ <code>.csv</code> ต้องมีคอลัมน์: <code>province, CO2_tonnes</code> (และ <code>year</code> ถ้ามี)
             </p>
 
-            <!-- [แก้ #3] input พิมพ์ตัวเลขแทน slider -->
             <div class="mb-3">
-              <label class="form-label fw-semibold" for="nYearsInput">
-                จำนวนปีที่ต้องการทำนาย
-              </label>
+              <label class="form-label fw-semibold" for="nYearsInput">จำนวนปีที่ต้องการทำนาย</label>
               <div class="d-flex align-items-center gap-2">
-                <input
-                  type="number"
-                  id="nYearsInput"
-                  class="n-years-input"
-                  min="1"
-                  max="10"
-                  value="1"
-                  placeholder="1–10"
-                />
-                <span class="text-muted small">ปี </span>
+                <input type="number" id="nYearsInput" class="n-years-input" min="1" max="10" value="1" placeholder="1–10" />
+                <span class="text-muted small">ปี</span>
               </div>
             </div>
-            <!-- เพิ่มหลังจาก input n_years -->
+
             <div class="mb-3">
-              <label class="form-label fw-semibold"
-                >ช่วงปีข้อมูลย้อนหลังที่ใช้เทรนโมเดล</label
-              >
+              <label class="form-label fw-semibold">ช่วงปีข้อมูลย้อนหลังที่ใช้เทรนโมเดล</label>
               <div class="d-flex align-items-center gap-2">
-                <input
-                  type="number"
-                  id="startYearInput"
-                  class="form-control"
-                  placeholder="ค.ศ. เริ่มต้น"
-                  min="2000"
-                  max="2022"
-                  value="2000"
-                  style="width: 120px"
-                />
+                <input type="number" id="startYearInput" class="form-control" placeholder="ค.ศ. เริ่มต้น" min="2000" max="2022" value="2000" style="width: 120px" />
                 <span>ถึง</span>
-                <input
-                  type="number"
-                  id="endYearInput"
-                  class="form-control"
-                  placeholder="ค.ศ. สิ้นสุด"
-                  min="2000"
-                  max="2022"
-                  value="2022"
-                  style="width: 120px"
-                />
-                <small class="text-muted"
-                
-                >
+                <input type="number" id="endYearInput" class="form-control" placeholder="ค.ศ. สิ้นสุด" min="2000" max="2022" value="2022" style="width: 120px" />
+                <small class="text-muted"></small>
               </div>
             </div>
+
             <div class="mb-3 form-check">
-              <input
-                type="checkbox"
-                class="form-check-input"
-                id="useNewDataCheck"
-              />
+              <input type="checkbox" class="form-check-input" id="useNewDataCheck" />
               <label class="form-check-label fw-semibold" for="useNewDataCheck">
                 ฉันมีข้อมูลปีล่าสุด (2023 หรือใหม่กว่า)
               </label>
             </div>
-            <input
-              type="file"
-              id="fileInput"
-              class="form-control mb-3"
-              accept=".csv"
-              style="display: none"
-            />
-            <button
-              type="button"
-              id="uploadBtn"
-              class="btn btn-gov-primary w-100 py-2"
-            >
+            <input type="file" id="fileInput" class="form-control mb-3" accept=".csv" style="display: none" />
+            <button type="button" id="uploadBtn" class="btn btn-gov-primary w-100 py-2">
               <i class="bi bi-graph-up"></i> เริ่มคาดการณ์
             </button>
             <div id="loading" class="loading text-center mt-3">
               <div class="spinner-border text-success" role="status"></div>
               <p class="mt-2">กำลังประมวลผลข้อมูลด้วยโมเดล XGBoost...</p>
             </div>
-            <div
-              id="pageError"
-              class="error-msg text-center mt-2"
-              style="display: none"
-            ></div>
+            <div id="pageError" class="error-msg text-center mt-2" style="display: none"></div>
           </div>
         </div>
       </div>
@@ -361,8 +308,7 @@
         <div class="card card-custom">
           <div class="card-header bg-white border-bottom-0 pt-3">
             <h5 class="mb-0 fw-bold text-success">
-              <i class="bi bi-clipboard-data me-2"></i
-              >ผลการประเมินความแม่นยำของโมเดล
+              <i class="bi bi-clipboard-data me-2"></i>ผลการประเมินความแม่นยำของโมเดล
             </h5>
             <small class="text-muted">ประเมินจากข้อมูล 3 ปีล่าสุด</small>
           </div>
@@ -377,16 +323,12 @@
             <h5 class="mb-0 fw-bold text-success">
               <i class="bi bi-calendar-check me-2"></i> ผลคาดการณ์การปล่อย CO₂
             </h5>
-            <!-- [แก้ #2] แสดงช่วงปีที่ทำนาย -->
             <small class="text-muted"
               >ช่วงปีที่คาดการณ์:
-              <span id="predictionYearRange" class="fw-semibold text-success"
-                >-</span
-              ></small
+              <span id="predictionYearRange" class="fw-semibold text-success">-</span></small
             >
           </div>
           <div class="card-body">
-            <!-- [แก้ #2] การ์ดช่วงปี แทนการ์ดปีเดียว -->
             <div class="row g-3 mb-3">
               <div class="col-md-6">
                 <div class="stats-card">
@@ -398,20 +340,16 @@
               <div class="col-md-6">
                 <div class="stats-card">
                   <i class="bi bi-flag-fill fs-1 text-success"></i>
-                  <div class="mt-2 text-secondary">
-                    ผลรวมทั้งประเทศ (ทุกปีรวมกัน)
-                  </div>
+                  <div class="mt-2 text-secondary">ผลรวมทั้งประเทศ (ทุกปีรวมกัน)</div>
                   <div class="total-co2" id="totalCo2Value">-</div>
                   <span>ตัน CO₂</span>
                 </div>
               </div>
             </div>
 
-            <!-- [แก้ #1] การ์ดผลรวมรายปี -->
             <div class="section-title">ผลรวมทั้งประเทศ แยกตามปีที่คาดการณ์</div>
             <div class="year-summary-cards" id="yearSummaryCards"></div>
 
-            <!-- ตารางรายจังหวัด -->
             <div class="section-title">รายละเอียดรายจังหวัด</div>
             <div class="result-table">
               <table class="table table-hover align-middle" id="predTable">
@@ -427,15 +365,18 @@
             </div>
           </div>
           <div class="card-footer bg-white border-top-0">
-            <div class="section-title mt-2">
-              5 จังหวัดที่มีการปล่อย CO₂ สูงสุด (รวมทุกปี)
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2 mb-3">
+              <div class="section-title mt-0 mb-0">แนวโน้มการปล่อย CO₂ รายจังหวัด</div>
+              <div class="d-flex align-items-center gap-2">
+                <label for="provinceSelect" class="fw-semibold mb-0">เลือกจังหวัด:</label>
+                <select id="provinceSelect" class="form-select" multiple size="3" style="width: auto; min-width: 280px;">
+                </select>
+                <button type="button" id="selectTop5Btn" class="btn btn-sm btn-outline-success">Top 5</button>
+                <button type="button" id="selectAllBtn" class="btn btn-sm btn-outline-secondary">ทั้งหมด</button>
+              </div>
             </div>
-            <canvas
-              id="top5Chart"
-              width="400"
-              height="200"
-              style="max-height: 300px"
-            ></canvas>
+            <canvas id="top5Chart" width="400" height="200" style="max-height: 300px"></canvas>
+            <small class="text-muted mt-2 d-block">เส้นประ = ข้อมูลประวัติ, เส้นทึบ = ค่าคาดการณ์</small>
           </div>
         </div>
       </div>
@@ -445,388 +386,360 @@
       <div class="container">
         <div class="row">
           <div class="col-md-6">
-            <i class="bi bi-building me-1"></i>
-            กรมการเปลี่ยนแปลงสภาพภูมิอากาศ<br />
-            <small
-              >49 ซอย 30 ถนนพระรามที่ 6 แขวงพญาไท เขตพญาไท กรุงเทพมหานคร
-              10400</small
-            >
+            <i class="bi bi-building me-1"></i> กรมการเปลี่ยนแปลงสภาพภูมิอากาศ<br />
+            <small>49 ซอย 30 ถนนพระรามที่ 6 แขวงพญาไท เขตพญาไท กรุงเทพมหานคร 10400</small>
           </div>
           <div class="col-md-6 text-md-end">
-            <small class="fixed-bottom mb-3 mx-3"
-              >© กรมการเปลี่ยนแปลงสภาพภูมิอากาศ</small
-            >
+            <small class="fixed-bottom mb-3 mx-3">© กรมการเปลี่ยนแปลงสภาพภูมิอากาศ</small>
           </div>
         </div>
       </div>
     </footer>
 
     <script>
-      function persistLog(msg, type = "info") {
-        const logs = JSON.parse(localStorage.getItem("app_logs") || "[]");
-        logs.push({ time: new Date().toISOString(), type, message: msg });
-        if (logs.length > 50) logs.shift();
-        localStorage.setItem("app_logs", JSON.stringify(logs));
-        console.log(`[${type}] ${msg}`);
-      }
-      window.showLogs = function () {
-        console.table(JSON.parse(localStorage.getItem("app_logs") || "[]"));
-      };
+      (function() {
+        // ----- global state -----
+        let currentPredictionData = [];
+        let currentHistoricalData = [];
+        let allYearsList = [];
+        let firstPredYearValue = null;
+        let chartInstance = null;
 
-      let uploadInProgress = false;
-      window.addEventListener("beforeunload", (event) => {
-        if (uploadInProgress) {
-          persistLog("Page refresh blocked because upload in progress", "warn");
-          event.preventDefault();
-          event.returnValue = "กำลังประมวลผลข้อมูล กรุณารอสักครู่";
-          return event.returnValue;
-        }
-      });
-      document.addEventListener("submit", (e) => {
-        e.preventDefault();
-        return false;
-      });
-      document.addEventListener("keypress", (e) => {
-        if (
-          e.key === "Enter" &&
-          (e.target.type === "file" || e.target.id === "fileInput")
-        ) {
-          persistLog("Enter key on file input prevented", "warn");
-          e.preventDefault();
-          return false;
-        }
-      });
+        // DOM elements
+        const useNewDataCheck = document.getElementById('useNewDataCheck');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const loadingDiv = document.getElementById('loading');
+        const evalSection = document.getElementById('evalSection');
+        const predSection = document.getElementById('predSection');
+        const pageErrorDiv = document.getElementById('pageError');
+        const provinceSelect = document.getElementById('provinceSelect');
+        const selectTop5Btn = document.getElementById('selectTop5Btn');
+        const selectAllBtn = document.getElementById('selectAllBtn');
+        const nYearsInput = document.getElementById('nYearsInput');
+        const startYearInput = document.getElementById('startYearInput');
+        const endYearInput = document.getElementById('endYearInput');
 
-      const useNewDataCheck = document.getElementById("useNewDataCheck");
-      const fileInput = document.getElementById("fileInput");
-      const uploadBtn = document.getElementById("uploadBtn");
-      const loadingDiv = document.getElementById("loading");
-      const evalSection = document.getElementById("evalSection");
-      const predSection = document.getElementById("predSection");
-      const pageErrorDiv = document.getElementById("pageError");
-      let chart = null;
-      useNewDataCheck.addEventListener("change", function () {
-        if (this.checked) {
-          fileInput.style.display = "block";
-          fileInput.required = true;
-        } else {
-          fileInput.style.display = "none";
-          fileInput.value = ""; // clear file
-          fileInput.required = false;
-        }
-      });
-      uploadBtn.addEventListener("click", async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+        let uploadInProgress = false;
 
-        if (uploadInProgress) return;
-
-        pageErrorDiv.style.display = "none";
-        const useNew = useNewDataCheck.checked;
-        let file = null;
-        if (useNew) {
-          file = fileInput.files[0];
-          if (!file) {
-            alert("กรุณาเลือกไฟล์ CSV สำหรับปี 2023 ขึ้นไป");
-            return;
-          }
+        // ----- utility functions -----
+        function persistLog(msg, type = 'info') {
+          const logs = JSON.parse(localStorage.getItem('app_logs') || '[]');
+          logs.push({ time: new Date().toISOString(), type, message: msg });
+          if (logs.length > 50) logs.shift();
+          localStorage.setItem('app_logs', JSON.stringify(logs));
+          console.log(`[${type}] ${msg}`);
         }
 
-        // [แก้ #3] อ่านค่าจาก input number + validate
-        let nYears = parseInt(document.getElementById("nYearsInput").value, 10);
-        if (isNaN(nYears) || nYears < 1) nYears = 1;
-        if (nYears > 10) nYears = 10;
-        document.getElementById("nYearsInput").value = nYears;
-
-        const formData = new FormData();
-        if (useNew && file) {
-          formData.append("file", file);
+        // ----- populate province dropdown -----
+        function populateProvinceSelect(provinces) {
+          provinceSelect.innerHTML = '';
+          provinces.sort((a, b) => a.localeCompare(b, 'th')).forEach(prov => {
+            const option = document.createElement('option');
+            option.value = prov;
+            option.textContent = prov;
+            provinceSelect.appendChild(option);
+          });
         }
-        uploadInProgress = true;
-        loadingDiv.style.display = "block";
-        evalSection.style.display = "none";
-        predSection.style.display = "none";
-        uploadBtn.disabled = true;
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 180000);
-        try {
-          if (file) {
-            persistLog(
-              `Sending request to /predict for file: ${file.name}, n_years: ${nYears}`,
-            );
-          } else {
-            persistLog(
-              `Sending request to /predict using old_data only, n_years: ${nYears}`,
-            );
-          }
-          // ใน event listener ของ uploadBtn
-          let startYear = document.getElementById("startYearInput").value;
-          let endYear = document.getElementById("endYearInput").value;
-          let queryParams = `n_years=${nYears}`;
-          if (startYear) queryParams += `&start_year=${startYear}`;
-          if (endYear) queryParams += `&end_year=${endYear}`;
+        // ----- get top 5 provinces by total predicted CO2 -----
+        function getTop5Provinces(predictionData) {
+          const byProvince = {};
+          predictionData.forEach(d => { byProvince[d.province] = (byProvince[d.province] || 0) + d.preds; });
+          return Object.entries(byProvince)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5)
+            .map(e => e[0]);
+        }
 
-          const response = await fetch(
-            `/predict?${queryParams}`,
-            {
-              method: "POST",
-              body: formData,
-              signal: controller.signal,
-              mode: "cors",
-              credentials: "omit",
-            },
-          );
-          clearTimeout(timeoutId);
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          const data = await response.json();
-          persistLog("Response received successfully");
+        // ----- redraw chart based on selected provinces -----
+        function redrawChart(selectedProvinces) {
+          const canvas = document.getElementById('top5Chart');
+          if (!canvas) return;
+          const ctx = canvas.getContext('2d');
 
-          // Evaluation
-          const evalSummaryDiv = document.getElementById("evalSummary");
-          if (data.evaluation_summary) {
-            evalSummaryDiv.innerHTML = `
-              <div class="row text-center">
-                <div class="col-sm-6 mb-2">
-                  <span class="badge bg-success fs-6 p-2">MAPE</span>
-                  <h3 class="mt-2 text-success">${(data.evaluation_summary.mape * 100).toFixed(2)}%</h3>
-                  <small>Mean Absolute Percentage Error</small>
-                </div>
-                <div class="col-sm-6 mb-2">
-                  <span class="badge bg-primary fs-6 p-2">R²</span>
-                  <h3 class="mt-2 text-primary">${data.evaluation_summary.r2.toFixed(4)}</h3>
-                  <small>Coefficient of Determination</small>
-                </div>
-              </div>`;
-          } else {
-            evalSummaryDiv.innerHTML =
-              '<div class="alert alert-warning">ไม่สามารถคำนวณค่าประเมินโมเดล</div>';
-          }
+          if (!currentPredictionData.length || !allYearsList.length) return;
 
-          if (data.prediction && data.prediction.length) {
-            displayTable("predTable", data.prediction, [
-              "province",
-              "year",
-              "preds",
-            ]);
+          const colors = ['#2E7D32', '#1565C0', '#E65100', '#6A1B9A', '#00695C', '#B71C1C', '#00838F', '#F57F17', '#4A148C', '#827717'];
 
-            // [แก้ #1] ผลรวมรายปี
-            const years = [
-              ...new Set(data.prediction.map((r) => r.year)),
-            ].sort();
-            const yearTotals = {};
-            data.prediction.forEach((r) => {
-              yearTotals[r.year] =
-                (yearTotals[r.year] || 0) + (Number(r.preds) || 0);
+          const datasets = selectedProvinces.map((prov, i) => {
+            const data = allYearsList.map(yr => {
+              const histRow = currentHistoricalData.find(d => d.province === prov && d.year === yr);
+              if (histRow) return histRow.actual / 1_000_000;
+
+              const predRow = currentPredictionData.find(d => d.province === prov && d.year === yr);
+              if (predRow) return predRow.preds / 1_000_000;
+
+              return null;
             });
 
-            // การ์ดรายปี
-            const yearCardsDiv = document.getElementById("yearSummaryCards");
-            yearCardsDiv.innerHTML = years
-              .map(
-                (yr) => `
-              <div class="year-card">
-                <div class="yr-label">ปี ${yr}</div>
-                <div class="yr-value">${yearTotals[yr].toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
-                <div class="yr-unit">ตัน CO₂</div>
-              </div>`,
-              )
-              .join("");
-
-            // ผลรวมทั้งหมด
-            const totalCO2 = Object.values(yearTotals).reduce(
-              (s, v) => s + v,
-              0,
-            );
-            document.getElementById("totalCo2Value").innerHTML =
-              totalCO2.toLocaleString(undefined, { maximumFractionDigits: 0 });
-
-            // [แก้ #2] แสดงช่วงปี
-            const firstYear = years[0];
-            const lastYear = years[years.length - 1];
-            const yearRangeText =
-              years.length === 1
-                ? `${firstYear}`
-                : `${firstYear} – ${lastYear}`;
-            document.getElementById("predictionYear").textContent =
-              yearRangeText;
-            document.getElementById("predictionYearRange").textContent =
-              yearRangeText;
-
-            drawTop5Chart(data.prediction, data.historical);
-            evalSection.style.display = "block";
-            predSection.style.display = "block";
-            persistLog("Display completed");
-          } else {
-            throw new Error("ไม่มีข้อมูลการทำนาย");
-          }
-        } catch (error) {
-          persistLog(`Error: ${error.message}`, "error");
-          let msg =
-            error.name === "AbortError"
-              ? "การเชื่อมต่อใช้เวลานานเกินไป"
-              : error.message.includes("Failed to fetch")
-                ? "ไม่สามารถเชื่อมต่อ Backend ได้"
-                : error.message;
-          pageErrorDiv.style.display = "block";
-          pageErrorDiv.innerText = msg;
-          evalSection.style.display = "none";
-          predSection.style.display = "none";
-        } finally {
-          uploadInProgress = false;
-          loadingDiv.style.display = "none";
-          uploadBtn.disabled = false;
-        }
-      });
-
-      function displayTable(tableId, data, columns) {
-        const tbody = document.querySelector(`#${tableId} tbody`);
-        if (!tbody) throw new Error("not found");
-        tbody.innerHTML = "";
-        data.forEach((row) => {
-          const tr = document.createElement("tr");
-          columns.forEach((col) => {
-            const td = document.createElement("td");
-            let val = row[col];
-            if (col === "preds") {
-              const num = Number(val);
-              val = !isNaN(num)
-                ? num.toLocaleString(undefined, { maximumFractionDigits: 0 })
-                : "-";
-            }
-            td.textContent = val;
-            tr.appendChild(td);
-          });
-          tbody.appendChild(tr);
-        });
-      }
-
-      function drawTop5Chart(predictionData, historicalData) {
-        const canvas = document.getElementById("top5Chart");
-        if (!canvas) return;
-        const ctx = canvas.getContext("2d");
-
-        // รวมปีทั้งหมดจากทั้งสองชุด (เรียงลำดับ)
-        const allYears = [
-          ...new Set([
-            ...historicalData.map((d) => d.year),
-            ...predictionData.map((d) => d.year),
-          ]),
-        ].sort((a, b) => a - b);
-
-        // ค้นหาปีแรกของการคาดการณ์ (ใช้แยกโซนประวัติ/คาดการณ์)
-        const firstPredYear = Math.min(...predictionData.map((d) => d.year));
-
-        // หา top 5 จังหวัด (จากค่าทำนายรวมทุกปี)
-        const byProvince = {};
-        predictionData.forEach((d) => {
-          byProvince[d.province] = (byProvince[d.province] || 0) + d.preds;
-        });
-        const top5Provinces = Object.entries(byProvince)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 5)
-          .map((e) => e[0]);
-
-        const colors = ["#2E7D32", "#1565C0", "#E65100", "#6A1B9A", "#00695C"];
-
-        // สร้าง datasets (1 dataset ต่อจังหวัด)
-        const datasets = top5Provinces.map((prov, i) => {
-          const data = allYears.map((yr) => {
-            // ค้นหาค่าจริง (historical)
-            const histRow = historicalData.find(
-              (d) => d.province === prov && d.year === yr,
-            );
-            if (histRow) return histRow.actual / 1_000_000;
-
-            // ค้นหาค่าทำนาย (prediction)
-            const predRow = predictionData.find(
-              (d) => d.province === prov && d.year === yr,
-            );
-            if (predRow) return predRow.preds / 1_000_000;
-
-            return null; // ไม่มีข้อมูล
-          });
-
-          return {
-            label: prov,
-            data: data,
-            borderColor: colors[i % colors.length],
-            backgroundColor: "transparent",
-            borderWidth: 3,
-            pointRadius: (ctx) => {
-              const year = allYears[ctx.dataIndex];
-              return year >= firstPredYear ? 5 : 2; // จุดใหญ่ในปีคาดการณ์
-            },
-            pointBackgroundColor: (ctx) => {
-              const year = allYears[ctx.dataIndex];
-              return year >= firstPredYear ? colors[i % colors.length] : "#fff";
-            },
-            pointBorderColor: colors[i % colors.length],
-            pointBorderWidth: 2,
-            tension: 0.2,
-            segment: {
-              borderDash: (ctx) => {
-                const year = allYears[ctx.p0DataIndex];
-                return year < firstPredYear ? [5, 3] : undefined; // เส้นประในช่วงประวัติ
+            return {
+              label: prov,
+              data: data,
+              borderColor: colors[i % colors.length],
+              backgroundColor: 'transparent',
+              borderWidth: 3,
+              pointRadius: (ctx) => {
+                const year = allYearsList[ctx.dataIndex];
+                return year >= firstPredYearValue ? 5 : 2;
               },
-            },
-          };
-        });
-
-        if (chart) chart.destroy();
-
-        chart = new Chart(ctx, {
-          type: "line",
-          data: { labels: allYears, datasets },
-          options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            scales: {
-              y: {
-                beginAtZero: false,
-                title: { display: true, text: "ล้านตัน CO₂" },
-                ticks: {
-                  callback: (val) =>
-                    val.toLocaleString(undefined, { maximumFractionDigits: 2 }),
+              pointBackgroundColor: (ctx) => {
+                const year = allYearsList[ctx.dataIndex];
+                return year >= firstPredYearValue ? colors[i % colors.length] : '#fff';
+              },
+              pointBorderColor: colors[i % colors.length],
+              pointBorderWidth: 2,
+              tension: 0.2,
+              segment: {
+                borderDash: (ctx) => {
+                  const year = allYearsList[ctx.p0DataIndex];
+                  return year < firstPredYearValue ? [5, 3] : undefined;
                 },
               },
-              x: { title: { display: true, text: "ปี" } },
-            },
-            plugins: {
-              tooltip: {
-                callbacks: {
-                  label: (ctx) => {
-                    let val = ctx.raw;
-                    const year = allYears[ctx.dataIndex];
-                    const type = year >= firstPredYear ? "คาดการณ์" : "ประวัติ";
-                    return `${ctx.dataset.label} (${type}): ${val.toLocaleString(undefined, { maximumFractionDigits: 2 })} ล้านตัน`;
+            };
+          });
+
+          if (chartInstance) chartInstance.destroy();
+
+          chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: { labels: allYearsList, datasets },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              scales: {
+                y: {
+                  beginAtZero: false,
+                  title: { display: true, text: 'ล้านตัน CO₂' },
+                  ticks: {
+                    callback: (val) => val.toLocaleString(undefined, { maximumFractionDigits: 2 }),
                   },
                 },
+                x: { title: { display: true, text: 'ปี' } },
               },
-              // เส้นแนวตั้งแสดงจุดเริ่มต้นการคาดการณ์ (ถ้าต้องการ)
-              annotation: {
-                annotations: {
-                  predLine: {
-                    type: "line",
-                    xMin: firstPredYear,
-                    xMax: firstPredYear,
-                    borderColor: "rgba(0,0,0,0.5)",
-                    borderWidth: 2,
-                    borderDash: [3, 3],
-                    label: {
-                      content: "เริ่มคาดการณ์",
-                      enabled: true,
-                      position: "top",
+              plugins: {
+                tooltip: {
+                  callbacks: {
+                    label: (ctx) => {
+                      let val = ctx.raw;
+                      const year = allYearsList[ctx.dataIndex];
+                      const type = year >= firstPredYearValue ? 'คาดการณ์' : 'ประวัติ';
+                      return `${ctx.dataset.label} (${type}): ${val.toLocaleString(undefined, { maximumFractionDigits: 2 })} ล้านตัน`;
                     },
                   },
                 },
               },
             },
-          },
-        });
-      }
+          });
+        }
 
-      window.addEventListener("load", () => persistLog("Page loaded"));
+        // ----- update chart from current selection -----
+        function updateChartFromSelection() {
+          const selected = Array.from(provinceSelect.selectedOptions).map(opt => opt.value);
+          if (selected.length === 0) {
+            // ถ้าไม่มีจังหวัดถูกเลือก ให้เลือกทั้งหมดโดยอัตโนมัติ (หรืออาจแสดงข้อความ)
+            Array.from(provinceSelect.options).forEach(opt => opt.selected = true);
+            redrawChart(Array.from(provinceSelect.options).map(opt => opt.value));
+          } else {
+            redrawChart(selected);
+          }
+        }
+
+        // ----- event listeners for province controls -----
+        provinceSelect.addEventListener('change', updateChartFromSelection);
+
+        selectTop5Btn.addEventListener('click', () => {
+          if (!currentPredictionData.length) return;
+          const top5 = getTop5Provinces(currentPredictionData);
+          Array.from(provinceSelect.options).forEach(opt => {
+            opt.selected = top5.includes(opt.value);
+          });
+          redrawChart(top5);
+        });
+
+        selectAllBtn.addEventListener('click', () => {
+          Array.from(provinceSelect.options).forEach(opt => opt.selected = true);
+          redrawChart(Array.from(provinceSelect.options).map(opt => opt.value));
+        });
+
+        // ----- file input toggle -----
+        useNewDataCheck.addEventListener('change', function() {
+          if (this.checked) {
+            fileInput.style.display = 'block';
+          } else {
+            fileInput.style.display = 'none';
+            fileInput.value = '';
+          }
+        });
+
+        // ----- upload button -----
+        uploadBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          if (uploadInProgress) return;
+
+          pageErrorDiv.style.display = 'none';
+          const useNew = useNewDataCheck.checked;
+          let file = null;
+          if (useNew) {
+            file = fileInput.files[0];
+            if (!file) {
+              alert('กรุณาเลือกไฟล์ CSV สำหรับปี 2023 ขึ้นไป');
+              return;
+            }
+          }
+
+          let nYears = parseInt(nYearsInput.value, 10);
+          if (isNaN(nYears) || nYears < 1) nYears = 1;
+          if (nYears > 10) nYears = 10;
+          nYearsInput.value = nYears;
+
+          const formData = new FormData();
+          if (useNew && file) formData.append('file', file);
+
+          uploadInProgress = true;
+          loadingDiv.style.display = 'block';
+          evalSection.style.display = 'none';
+          predSection.style.display = 'none';
+          uploadBtn.disabled = true;
+
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 180000);
+
+          try {
+            const startYear = startYearInput.value;
+            const endYear = endYearInput.value;
+            let queryParams = `n_years=${nYears}`;
+            if (startYear) queryParams += `&start_year=${startYear}`;
+            if (endYear) queryParams += `&end_year=${endYear}`;
+
+            persistLog(`Sending request to /predict?${queryParams}`);
+
+            const response = await fetch(`/predict?${queryParams}`, {
+              method: 'POST',
+              body: formData,
+              signal: controller.signal,
+            });
+
+            clearTimeout(timeoutId);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            persistLog('Response received');
+
+            // Evaluation summary
+            const evalSummaryDiv = document.getElementById('evalSummary');
+            if (data.evaluation_summary) {
+              evalSummaryDiv.innerHTML = `
+                <div class="row text-center">
+                  <div class="col-sm-6 mb-2">
+                    <span class="badge bg-success fs-6 p-2">MAPE</span>
+                    <h3 class="mt-2 text-success">${(data.evaluation_summary.mape * 100).toFixed(2)}%</h3>
+                    <small>Mean Absolute Percentage Error</small>
+                  </div>
+                  <div class="col-sm-6 mb-2">
+                    <span class="badge bg-primary fs-6 p-2">R²</span>
+                    <h3 class="mt-2 text-primary">${data.evaluation_summary.r2.toFixed(4)}</h3>
+                    <small>Coefficient of Determination</small>
+                  </div>
+                </div>`;
+            } else {
+              evalSummaryDiv.innerHTML = '<div class="alert alert-warning">ไม่สามารถคำนวณค่าประเมินโมเดล</div>';
+            }
+
+            if (data.prediction && data.prediction.length) {
+              // store data globally
+              currentPredictionData = data.prediction;
+              currentHistoricalData = data.historical || [];
+
+              // prepare years
+              const predYears = [...new Set(data.prediction.map(r => r.year))].sort();
+              const histYears = currentHistoricalData.length ? [...new Set(currentHistoricalData.map(r => r.year))] : [];
+              allYearsList = [...new Set([...histYears, ...predYears])].sort((a,b) => a-b);
+              firstPredYearValue = Math.min(...predYears);
+
+              // display table
+              displayTable('predTable', data.prediction, ['province', 'year', 'preds']);
+
+              // year summary cards
+              const yearTotals = {};
+              data.prediction.forEach(r => { yearTotals[r.year] = (yearTotals[r.year] || 0) + (Number(r.preds) || 0); });
+              const years = Object.keys(yearTotals).sort();
+              const yearCardsDiv = document.getElementById('yearSummaryCards');
+              yearCardsDiv.innerHTML = years.map(yr => `
+                <div class="year-card">
+                  <div class="yr-label">ปี ${yr}</div>
+                  <div class="yr-value">${yearTotals[yr].toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+                  <div class="yr-unit">ตัน CO₂</div>
+                </div>
+              `).join('');
+
+              const totalCO2 = Object.values(yearTotals).reduce((s, v) => s + v, 0);
+              document.getElementById('totalCo2Value').innerHTML = totalCO2.toLocaleString(undefined, { maximumFractionDigits: 0 });
+
+              const firstYear = years[0];
+              const lastYear = years[years.length - 1];
+              const yearRangeText = years.length === 1 ? `${firstYear}` : `${firstYear} – ${lastYear}`;
+              document.getElementById('predictionYear').textContent = yearRangeText;
+              document.getElementById('predictionYearRange').textContent = yearRangeText;
+
+              // populate province dropdown
+              const allProvinces = [...new Set(data.prediction.map(r => r.province))];
+              populateProvinceSelect(allProvinces);
+
+              // set default selection to top 5
+              const top5Default = getTop5Provinces(data.prediction);
+              Array.from(provinceSelect.options).forEach(opt => {
+                opt.selected = top5Default.includes(opt.value);
+              });
+              redrawChart(top5Default);
+
+              evalSection.style.display = 'block';
+              predSection.style.display = 'block';
+            } else {
+              throw new Error('ไม่มีข้อมูลการทำนาย');
+            }
+          } catch (error) {
+            persistLog(`Error: ${error.message}`, 'error');
+            let msg = error.name === 'AbortError' ? 'การเชื่อมต่อใช้เวลานานเกินไป' : (error.message.includes('Failed to fetch') ? 'ไม่สามารถเชื่อมต่อ Backend ได้' : error.message);
+            pageErrorDiv.style.display = 'block';
+            pageErrorDiv.innerText = msg;
+            evalSection.style.display = 'none';
+            predSection.style.display = 'none';
+          } finally {
+            uploadInProgress = false;
+            loadingDiv.style.display = 'none';
+            uploadBtn.disabled = false;
+          }
+        });
+
+        function displayTable(tableId, data, columns) {
+          const tbody = document.querySelector(`#${tableId} tbody`);
+          tbody.innerHTML = '';
+          data.forEach(row => {
+            const tr = document.createElement('tr');
+            columns.forEach(col => {
+              const td = document.createElement('td');
+              let val = row[col];
+              if (col === 'preds') {
+                const num = Number(val);
+                val = !isNaN(num) ? num.toLocaleString(undefined, { maximumFractionDigits: 0 }) : '-';
+              }
+              td.textContent = val;
+              tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+          });
+        }
+
+        // prevent accidental refresh while uploading
+        window.addEventListener('beforeunload', (event) => {
+          if (uploadInProgress) {
+            event.preventDefault();
+            event.returnValue = 'กำลังประมวลผลข้อมูล กรุณารอสักครู่';
+          }
+        });
+
+        persistLog('Page loaded');
+      })();
     </script>
   </body>
 </html>
