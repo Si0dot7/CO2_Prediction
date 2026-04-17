@@ -568,7 +568,7 @@
           if (endYear) queryParams += `&end_year=${endYear}`;
 
           const response = await fetch(
-            `http://localhost:8000/predict?${queryParams}`,
+            `/predict?${queryParams}`,
             {
               method: "POST",
               body: formData,
