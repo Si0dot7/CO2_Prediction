@@ -128,7 +128,7 @@ async def health_check():
 @app.get("/")
 @app.head("/")
 async def root():
-    return {"status": "ok", "message": "CO2 Prediction API"}
+    return RedirectResponse(url="/static/index.html")
 
 if __name__ == "__main__":
     import uvicorn
