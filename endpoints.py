@@ -7,6 +7,8 @@ from typing import Dict, Any, Optional
 import logging
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.staticfiles import StaticFiles
+
 
 from pipeline_main import (
     load_and_clean,
@@ -35,6 +37,7 @@ app.add_middleware(
 )
 
 app.add_middleware(GZipMiddleware, minimum_size=500)
+app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 
 class PredictionResponse:
     def __init__(self, next_year_pred: pd.DataFrame, evaluation_result: pd.DataFrame):
