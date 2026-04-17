@@ -1,7 +1,7 @@
 import os
 import tempfile
 from fastapi import FastAPI, UploadFile, File, HTTPException, Query
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse,RedirectResponse,Response
 import pandas as pd
 from typing import Dict, Any, Optional
 import logging
@@ -126,9 +126,12 @@ async def predict_next_year_endpoint(
 async def health_check():
     return {"status": "ok"}
 @app.get("/")
-@app.head("/")
 async def root():
     return RedirectResponse(url="/static/index.html")
+
+@app.head("/")
+async def head_root():
+    return Response(status_code=200)
 
 if __name__ == "__main__":
     import uvicorn
