@@ -122,6 +122,10 @@ async def predict_next_year_endpoint(
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
+@app.get("/")
+@app.head("/")
+async def root():
+    return {"status": "ok", "message": "CO2 Prediction API"}
 
 if __name__ == "__main__":
     import uvicorn
