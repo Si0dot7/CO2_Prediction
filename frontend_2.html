@@ -284,7 +284,7 @@
                   value="1"
                   placeholder="1–10"
                 />
-                <span class="text-muted small">ปี (สูงสุด 10 ปี)</span>
+                <span class="text-muted small">ปี </span>
               </div>
             </div>
             <!-- เพิ่มหลังจาก input n_years -->
@@ -299,7 +299,7 @@
                   class="form-control"
                   placeholder="ค.ศ. เริ่มต้น"
                   min="2000"
-                  max="2025"
+                  max="2022"
                   value="2000"
                   style="width: 120px"
                 />
@@ -310,21 +310,31 @@
                   class="form-control"
                   placeholder="ค.ศ. สิ้นสุด"
                   min="2000"
-                  max="2025"
+                  max="2022"
                   value="2022"
                   style="width: 120px"
                 />
                 <small class="text-muted"
-                  >(เว้นว่างไว้เพื่อใช้ข้อมูลทั้งหมด)</small
+                
                 >
               </div>
             </div>
-
+            <div class="mb-3 form-check">
+              <input
+                type="checkbox"
+                class="form-check-input"
+                id="useNewDataCheck"
+              />
+              <label class="form-check-label fw-semibold" for="useNewDataCheck">
+                ฉันมีข้อมูลปีล่าสุด (2023 หรือใหม่กว่า)
+              </label>
+            </div>
             <input
               type="file"
               id="fileInput"
               class="form-control mb-3"
               accept=".csv"
+              style="display: none"
             />
             <button
               type="button"
@@ -487,6 +497,7 @@
         }
       });
 
+      const useNewDataCheck = document.getElementById("useNewDataCheck");
       const fileInput = document.getElementById("fileInput");
       const uploadBtn = document.getElementById("uploadBtn");
       const loadingDiv = document.getElementById("loading");
@@ -494,18 +505,31 @@
       const predSection = document.getElementById("predSection");
       const pageErrorDiv = document.getElementById("pageError");
       let chart = null;
-
+      useNewDataCheck.addEventListener("change", function () {
+        if (this.checked) {
+          fileInput.style.display = "block";
+          fileInput.required = true;
+        } else {
+          fileInput.style.display = "none";
+          fileInput.value = ""; // clear file
+          fileInput.required = false;
+        }
+      });
       uploadBtn.addEventListener("click", async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        persistLog("Upload button clicked");
+
         if (uploadInProgress) return;
 
         pageErrorDiv.style.display = "none";
-        const file = fileInput.files[0];
-        if (!file) {
-          alert("กรุณาเลือกไฟล์ CSV");
-          return;
+        const useNew = useNewDataCheck.checked;
+        let file = null;
+        if (useNew) {
+          file = fileInput.files[0];
+          if (!file) {
+            alert("กรุณาเลือกไฟล์ CSV สำหรับปี 2023 ขึ้นไป");
+            return;
+          }
         }
 
         // [แก้ #3] อ่านค่าจาก input number + validate
@@ -515,7 +539,9 @@
         document.getElementById("nYearsInput").value = nYears;
 
         const formData = new FormData();
-        formData.append("file", file);
+        if (useNew && file) {
+          formData.append("file", file);
+        }
         uploadInProgress = true;
         loadingDiv.style.display = "block";
         evalSection.style.display = "none";
@@ -525,9 +551,15 @@
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 180000);
         try {
-          persistLog(
-            `Sending request to /predict for file: ${file.name}, n_years: ${nYears}`,
-          );
+          if (file) {
+            persistLog(
+              `Sending request to /predict for file: ${file.name}, n_years: ${nYears}`,
+            );
+          } else {
+            persistLog(
+              `Sending request to /predict using old_data only, n_years: ${nYears}`,
+            );
+          }
           // ใน event listener ของ uploadBtn
           let startYear = document.getElementById("startYearInput").value;
           let endYear = document.getElementById("endYearInput").value;
@@ -621,7 +653,7 @@
             document.getElementById("predictionYearRange").textContent =
               yearRangeText;
 
-            drawTop5Chart(data.prediction);
+            drawTop5Chart(data.prediction, data.historical);
             evalSection.style.display = "block";
             predSection.style.display = "block";
             persistLog("Display completed");
@@ -669,14 +701,23 @@
         });
       }
 
-      function drawTop5Chart(predictionData) {
+      function drawTop5Chart(predictionData, historicalData) {
         const canvas = document.getElementById("top5Chart");
         if (!canvas) return;
         const ctx = canvas.getContext("2d");
 
-        const years = [...new Set(predictionData.map((d) => d.year))].sort();
+        // รวมปีทั้งหมดจากทั้งสองชุด (เรียงลำดับ)
+        const allYears = [
+          ...new Set([
+            ...historicalData.map((d) => d.year),
+            ...predictionData.map((d) => d.year),
+          ]),
+        ].sort((a, b) => a - b);
 
-        // หา top 5 จังหวัด (รวมทุกปี)
+        // ค้นหาปีแรกของการคาดการณ์ (ใช้แยกโซนประวัติ/คาดการณ์)
+        const firstPredYear = Math.min(...predictionData.map((d) => d.year));
+
+        // หา top 5 จังหวัด (จากค่าทำนายรวมทุกปี)
         const byProvince = {};
         predictionData.forEach((d) => {
           byProvince[d.province] = (byProvince[d.province] || 0) + d.preds;
@@ -688,45 +729,95 @@
 
         const colors = ["#2E7D32", "#1565C0", "#E65100", "#6A1B9A", "#00695C"];
 
-        // สร้าง datasets แบบ line (หนึ่งเส้นต่อจังหวัด)
-        const datasets = top5Provinces.map((prov, i) => ({
-          label: prov,
-          data: years.map((yr) => {
-            const row = predictionData.find(
+        // สร้าง datasets (1 dataset ต่อจังหวัด)
+        const datasets = top5Provinces.map((prov, i) => {
+          const data = allYears.map((yr) => {
+            // ค้นหาค่าจริง (historical)
+            const histRow = historicalData.find(
               (d) => d.province === prov && d.year === yr,
             );
-            return row ? row.preds : null;
-          }),
-          borderColor: colors[i % colors.length],
-          backgroundColor: "transparent",
-          tension: 0.2,
-          borderWidth: 3,
-          pointRadius: 4,
-          pointHoverRadius: 6,
-        }));
+            if (histRow) return histRow.actual / 1_000_000;
+
+            // ค้นหาค่าทำนาย (prediction)
+            const predRow = predictionData.find(
+              (d) => d.province === prov && d.year === yr,
+            );
+            if (predRow) return predRow.preds / 1_000_000;
+
+            return null; // ไม่มีข้อมูล
+          });
+
+          return {
+            label: prov,
+            data: data,
+            borderColor: colors[i % colors.length],
+            backgroundColor: "transparent",
+            borderWidth: 3,
+            pointRadius: (ctx) => {
+              const year = allYears[ctx.dataIndex];
+              return year >= firstPredYear ? 5 : 2; // จุดใหญ่ในปีคาดการณ์
+            },
+            pointBackgroundColor: (ctx) => {
+              const year = allYears[ctx.dataIndex];
+              return year >= firstPredYear ? colors[i % colors.length] : "#fff";
+            },
+            pointBorderColor: colors[i % colors.length],
+            pointBorderWidth: 2,
+            tension: 0.2,
+            segment: {
+              borderDash: (ctx) => {
+                const year = allYears[ctx.p0DataIndex];
+                return year < firstPredYear ? [5, 3] : undefined; // เส้นประในช่วงประวัติ
+              },
+            },
+          };
+        });
 
         if (chart) chart.destroy();
+
         chart = new Chart(ctx, {
           type: "line",
-          data: { labels: years, datasets },
+          data: { labels: allYears, datasets },
           options: {
             responsive: true,
             maintainAspectRatio: true,
             scales: {
               y: {
-                beginAtZero: true,
-                title: { display: true, text: "ตัน CO₂" },
+                beginAtZero: false,
+                title: { display: true, text: "ล้านตัน CO₂" },
+                ticks: {
+                  callback: (val) =>
+                    val.toLocaleString(undefined, { maximumFractionDigits: 2 }),
+                },
               },
-              x: {
-                title: { display: true, text: "ปี" },
-              },
+              x: { title: { display: true, text: "ปี" } },
             },
             plugins: {
               tooltip: {
                 callbacks: {
                   label: (ctx) => {
                     let val = ctx.raw;
-                    return `${ctx.dataset.label}: ${val.toLocaleString()} ตัน`;
+                    const year = allYears[ctx.dataIndex];
+                    const type = year >= firstPredYear ? "คาดการณ์" : "ประวัติ";
+                    return `${ctx.dataset.label} (${type}): ${val.toLocaleString(undefined, { maximumFractionDigits: 2 })} ล้านตัน`;
+                  },
+                },
+              },
+              // เส้นแนวตั้งแสดงจุดเริ่มต้นการคาดการณ์ (ถ้าต้องการ)
+              annotation: {
+                annotations: {
+                  predLine: {
+                    type: "line",
+                    xMin: firstPredYear,
+                    xMax: firstPredYear,
+                    borderColor: "rgba(0,0,0,0.5)",
+                    borderWidth: 2,
+                    borderDash: [3, 3],
+                    label: {
+                      content: "เริ่มคาดการณ์",
+                      enabled: true,
+                      position: "top",
+                    },
                   },
                 },
               },

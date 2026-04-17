@@ -1,9 +1,9 @@
 import os
 import tempfile
-from fastapi import FastAPI,UploadFile,File,HTTPException,Query
+from fastapi import FastAPI, UploadFile, File, HTTPException, Query
 from fastapi.responses import JSONResponse
 import pandas as pd
-from typing import Dict,Any
+from typing import Dict, Any, Optional
 import logging
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -17,6 +17,8 @@ from pipeline_main import (
     detect_anomalies,
     train_and_evaluate,
     predict_next_year,
+    run_pipeline,
+    run_pipeline_without_current   # <-- เพิ่ม import
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -26,7 +28,7 @@ app = FastAPI(title="CO2 Prediction API", description="API สำหรับพ
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # หรือระบุ origin จริง เช่น "http://localhost:5500"
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -40,43 +42,61 @@ class PredictionResponse:
         self.evaluation_result = evaluation_result.to_dict(orient="records") if not evaluation_result.empty else []
 
 @app.post("/predict")
-async def predict_next_year_endpoint(file: UploadFile = File(...),n_years: int = Query(default=1, ge=1, le=10, description="จำนวนปีที่ต้องการทำนาย"),
+async def predict_next_year_endpoint(
+    file: Optional[UploadFile] = File(None),
+    n_years: int = Query(default=1, ge=1, le=10, description="จำนวนปีที่ต้องการทำนาย"),
     start_year: int = Query(None, description="ปีเริ่มต้นของข้อมูลเก่าที่ใช้เทรน (ค.ศ.)"),
-    end_year: int = Query(None, description="ปีสิ้นสุดของข้อมูลเก่าที่ใช้เทรน (ค.ศ.)")):
+    end_year: int = Query(None, description="ปีสิ้นสุดของข้อมูลเก่าที่ใช้เทรน (ค.ศ.)")
+):
     """
     รับไฟล์ CSV ของปีปัจจุบัน (ต้องมี columns: province, CO2_tonnes และ optionally year)
-    คืนผลการทำนายปีถัดไป และผลการประเมิน (3 ปีล่าสุด)
+    หรือถ้าไม่ส่งไฟล์มา จะใช้ข้อมูลเก่าจาก old_data.csv ทั้งหมด
+    คืนผลการทำนายปีถัดไป และผลการประเมิน
     """
-    # ตรวจสอบนามสกุลไฟล์
-    if not file.filename.endswith('.csv'):
-        raise HTTPException(status_code=400, detail="File must be CSV")
-
+    tmp_path = None
     try:
-        # บันทึกไฟล์ที่อัปโหลดลง temp file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp:
-            content = await file.read()
-            tmp.write(content)
-            tmp_path = tmp.name
-        
-        # เรียก pipeline
-        # เนื่องจาก run_pipeline ในโค้ดเดิมใช้ print และคืนค่า result, next_pred, model, encoder, scaler
-        # เราจำเป็นต้องมี run_pipeline อยู่ใน pipeline_main หรือสร้างฟังก์ชัน wrapper ใหม่
-        # แต่วิธีที่ง่ายคือ copy run_pipeline มาไว้ที่นี่หรือ import จาก pipeline_main
-        # สมมติว่ามี run_pipeline อยู่ใน pipeline_main แล้ว:
-        from pipeline_main import run_pipeline
-        # run_pipeline รับ path และคืน (result, next_pred, model, encoder, scaler)
-        # result = evaluation DataFrame, next_pred = prediction DataFrame
-        result_df, next_pred_df, mape, r2 = run_pipeline(
-        tmp_path, 
-        n_years=n_years,
-        start_year=start_year,
-        end_year=end_year
-    )
+        # กรณีมีไฟล์อัปโหลด
+        if file is not None:
+            if not file.filename.endswith('.csv'):
+                raise HTTPException(status_code=400, detail="File must be CSV")
 
-        # ลบไฟล์ temp
-        os.unlink(tmp_path)
+            # บันทึกไฟล์ชั่วคราว
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp:
+                content = await file.read()
+                tmp.write(content)
+                tmp_path = tmp.name
 
-        # ปรับ round ให้ทำทุกแถว (ทุกปี)
+            # ตรวจสอบว่าข้อมูลในไฟล์เป็นปี >= 2023
+            df_check = pd.read_csv(tmp_path)
+            if "year" in df_check.columns:
+                years_in_file = df_check["year"].unique()
+            else:
+                # ถ้าไม่มีคอลัมน์ year ให้ลองหาจากชื่อไฟล์
+                import re
+                match = re.search(r'(\d{4})', file.filename)
+                if match:
+                    years_in_file = [int(match.group(1))]
+                else:
+                    raise HTTPException(status_code=400, detail="ไม่พบปีในไฟล์ กรุณาระบุคอลัมน์ 'year' หรือใส่ปีในชื่อไฟล์")
+            if max(years_in_file) < 2023:
+                raise HTTPException(status_code=400, detail="ไฟล์ต้องมีข้อมูลปี 2023 ขึ้นไปเท่านั้น")
+
+            # เรียก pipeline ปกติ (ใช้ไฟล์ปัจจุบัน + old_data)
+            result_df, next_pred_df, mape, r2 = run_pipeline(
+                tmp_path,
+                n_years=n_years,
+                start_year=start_year,
+                end_year=end_year
+            )
+        else:
+            # ไม่มีไฟล์ -> ใช้ old_data.csv อย่างเดียว
+            result_df, next_pred_df, mape, r2 , historical_df = run_pipeline_without_current(
+                n_years=n_years,
+                start_year=start_year,
+                end_year=end_year
+            )
+
+        # จัดการค่าทำนายให้เป็นจำนวนเต็ม
         next_pred_df["preds"] = (
             pd.to_numeric(next_pred_df["preds"], errors="coerce")
             .fillna(0).round(0).astype(int)
@@ -85,14 +105,20 @@ async def predict_next_year_endpoint(file: UploadFile = File(...),n_years: int =
         response = {
             "evaluation_summary": {"mape": float(mape), "r2": float(r2)},
             "prediction": next_pred_df.to_dict(orient="records"),
-            "prediction_years": sorted(next_pred_df["year"].unique().tolist()),  # เปลี่ยนเป็น list
+            "historical": historical_df.to_dict(orient="records"),
+            "prediction_years": sorted(next_pred_df["year"].unique().tolist()),
         }
         return JSONResponse(content=response)
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Prediction failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
-    
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}

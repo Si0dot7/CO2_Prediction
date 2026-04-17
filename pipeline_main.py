@@ -40,6 +40,9 @@ def load_old_data(start_year: int = None, end_year: int = None) -> pd.DataFrame:
         return pd.DataFrame()
     df = pd.read_csv(old_data_path)
     
+    # 🔧 แปลง year เป็นตัวเลข (int) เพื่อให้สามารถเปรียบเทียบได้
+    df["year"] = pd.to_numeric(df["year"], errors="coerce").fillna(0).astype(int)
+    
     # กรองตามช่วงปี (ถ้าระบุ)
     if start_year is not None:
         df = df[df["year"] >= start_year]
@@ -249,9 +252,43 @@ def run_pipeline(current_year_path: str, n_years: int = 1, start_year: int = Non
 
     print("\n── 8. Save current year to old_data ──────")
     save_current_to_old_data(df_current)
+    historical_df = combined[["province", "year", "CO2_tonnes"]].copy()
+    historical_df = historical_df.rename(columns={"CO2_tonnes": "actual"})
 
-    return result, next_pred ,mape , r2
+    return result, next_pred ,mape , r2,historical_df
 
+def run_pipeline_without_current(n_years: int = 1, start_year: int = None, end_year: int = None):
+    """
+    Pipeline สำหรับกรณีไม่มีไฟล์ปัจจุบัน ใช้ข้อมูลจาก old_data.csv อย่างเดียว
+    """
+    print("── 1. Load old data only ──────────────────")
+    df_old = load_old_data(start_year, end_year)
+    if df_old.empty:
+        raise ValueError("ไม่พบข้อมูลเก่าใน old_data.csv")
+
+    print(f"Old data loaded: {len(df_old)} rows, years: {sorted(df_old['year'].unique())}")
+    combined = df_old.copy()
+
+    print("── 2. Feature engineering ───────────")
+    df_feat = add_features(combined)
+    required_cols = ["province", "year", "CO2_tonnes", "lag1", "lag2", "growth", "rolling_mean"]
+    df_feat = df_feat[required_cols]
+
+    print("── 3. Encode & scale ────────────────")
+    df_enc, encoder, scaler = encode_and_scale(df_feat)
+
+    print("── 4. Anomaly detection ─────────────")
+    df_enc = detect_anomalies(df_enc)
+
+    print("── 5. Train & evaluate ──────────────")
+    result, model, mape, r2 = train_and_evaluate(df_enc, scaler, encoder)
+
+    print("── 6. Predict next year(s) ──────────")
+    next_pred = predict_next_year(model, encoder, scaler, combined, n_years=n_years)
+    historical_df = combined[["province", "year", "CO2_tonnes"]].copy()
+    historical_df = historical_df.rename(columns={"CO2_tonnes": "actual"})
+
+    return result, next_pred, mape, r2 ,historical_df
 # ─────────────────────────────────────────
 # ENTRY POINT
 # ─────────────────────────────────────────
