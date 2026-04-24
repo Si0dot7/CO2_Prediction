@@ -17,248 +17,11 @@
       rel="stylesheet"
     />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <!-- Plugin สำหรับวาดเส้น annotation -->
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0/dist/chartjs-plugin-annotation.min.js"></script>
-    <style>
-      * {
-        font-family: "Sarabun", sans-serif;
-      }
-      body {
-        background-color: #f0f7f0;
-        background-image: radial-gradient(
-          circle at 10% 20%,
-          rgba(46, 125, 50, 0.03) 0%,
-          rgba(0, 0, 0, 0) 80%
-        );
-        padding-bottom: 110px;
-      }
-      :root {
-        --primary-green: #1b5e20;
-        --primary-dark: #0d3b0f;
-        --secondary-blue: #0d47a1;
-        --accent-light: #e8f5e9;
-        --gold: #c9a03d;
-      }
-      .navbar-gov {
-        background: linear-gradient(
-          135deg,
-          var(--primary-green) 0%,
-          var(--primary-dark) 100%
-        );
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        border-bottom: 3px solid var(--gold);
-      }
-      .gov-badge {
-        background-color: var(--gold);
-        color: #2c2c2c;
-        font-weight: 600;
-        padding: 0.25rem 0.75rem;
-        border-radius: 30px;
-        font-size: 0.8rem;
-      }
-      .card-custom {
-        border: none;
-        border-radius: 1.25rem;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-        transition: transform 0.2s;
-        background: #ffffff;
-        border-top: 4px solid var(--primary-green);
-      }
-      .card-custom:hover {
-        transform: translateY(-2px);
-      }
-      .btn-gov-primary {
-        background-color: var(--primary-green);
-        border-color: var(--primary-green);
-        font-weight: 600;
-        padding: 10px 20px;
-        transition: all 0.2s;
-        color: whitesmoke;
-      }
-      .btn-gov-primary:hover {
-        background-color: var(--primary-dark);
-        border-color: var(--primary-dark);
-        transform: scale(1.01);
-        color: whitesmoke;
-      }
-      .result-table {
-        max-height: 500px;
-        overflow-y: auto;
-        border-radius: 1rem;
-      }
-      .table thead th {
-        background-color: var(--primary-green);
-        color: white;
-        position: sticky;
-        top: 0;
-        font-weight: 600;
-        border-bottom: none;
-      }
-      .table tbody tr:hover {
-        background-color: var(--accent-light);
-      }
+    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 
-      #predTable {
-        table-layout: fixed;
-        width: 100%;
-      }
-      #predTable th:nth-child(1),
-      #predTable td:nth-child(1) {
-        width: 45%;
-      }
-      #predTable th:nth-child(2),
-      #predTable td:nth-child(2) {
-        width: 15%;
-        text-align: center;
-      }
-      #predTable th:nth-child(3),
-      #predTable td:nth-child(3) {
-        width: 40%;
-        text-align: right;
-        padding-right: 1.5rem;
-      }
-
-      .total-co2 {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--primary-green);
-      }
-      .stats-card {
-        background: var(--accent-light);
-        border-radius: 1rem;
-        padding: 1rem;
-        text-align: center;
-        transition: all 0.2s;
-      }
-      .year-summary-cards {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-        margin-bottom: 1rem;
-      }
-      .year-card {
-        background: white;
-        border: 2px solid var(--primary-green);
-        border-radius: 0.75rem;
-        padding: 0.75rem 1.25rem;
-        text-align: center;
-        min-width: 160px;
-        flex: 1;
-      }
-      .year-card .yr-label {
-        font-size: 0.85rem;
-        color: #666;
-      }
-      .year-card .yr-value {
-        font-size: 1.3rem;
-        font-weight: 700;
-        color: var(--primary-green);
-      }
-      .year-card .yr-unit {
-        font-size: 0.75rem;
-        color: #888;
-      }
-      .footer-gov {
-        background-color: #1e2a1e;
-        color: #cfd8cf;
-        font-size: 0.85rem;
-        border-top: 1px solid var(--gold);
-      }
-      .section-title {
-        border-left: 6px solid var(--primary-green);
-        padding-left: 15px;
-        margin: 1.5rem 0 1rem;
-        font-weight: 700;
-        color: #1e3a1e;
-      }
-      .upload-area {
-        border: 2px dashed #b9dfb9;
-        background-color: #fafef7;
-        border-radius: 1rem;
-        transition: 0.2s;
-      }
-      .upload-area:hover {
-        border-color: var(--primary-green);
-        background-color: #f1f9f1;
-      }
-      .loading {
-        display: none;
-      }
-      .error-msg {
-        color: #b33;
-        font-weight: 500;
-        background: #fff0f0;
-        border-radius: 2rem;
-        padding: 0.5rem;
-      }
-      .n-years-input {
-        width: 80px;
-        border: 2px solid #b9dfb9;
-        border-radius: 0.5rem;
-        padding: 0.35rem 0.6rem;
-        font-size: 1rem;
-        text-align: center;
-        transition: border-color 0.2s;
-      }
-      .n-years-input:focus {
-        border-color: var(--primary-green);
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(27, 94, 32, 0.15);
-      }
-
-      #provinceCheckboxList {
-        max-height: 200px;
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding-left: 6px;
-        padding-right: 4px;
-      }
-      .province-check-item {
-        padding: 0.35rem 0.5rem 0.35rem 2px;
-        border-bottom: 1px solid #eee;
-        margin: 0;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-      }
-      .province-check-item:last-child {
-        border-bottom: none;
-      }
-      .province-check-item .form-check-input {
-        margin-right: 0.75rem;
-        margin-left: 2px;
-        margin-top: 0 !important;
-        width: 1.3em;
-        height: 1.3em;
-        cursor: pointer;
-        flex-shrink: 0;
-        accent-color: var(--primary-green);
-        border: 2px solid #b0bec5;
-      }
-      .province-check-item .form-check-label {
-        cursor: pointer;
-        flex: 1;
-      }
-      .province-check-item:has(input:checked) {
-        background-color: #e8f5e9;
-      }
-      .province-check-item:has(input:checked) label {
-        font-weight: 600;
-        color: #1b5e20;
-      }
-
-      .total-chart-container {
-        margin-top: 2rem;
-        padding-top: 1rem;
-        border-top: 1px dashed #b9dfb9;
-      }
-
-      @media (max-width: 768px) {
-        .total-co2 {
-          font-size: 1.5rem;
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <nav class="navbar navbar-gov px-3 py-2">
@@ -267,15 +30,11 @@
           <i class="bi bi-tree-fill fs-2 me-2"></i>
           <div>
             <span class="fw-bold">กรมการเปลี่ยนแปลงสภาพภูมิอากาศ</span><br />
-            <small class="text-light-emphasis"
-              >Department of Climate Change</small
-            >
+            <small class="text-light-emphasis">Department of Climate Change</small>
           </div>
         </a>
         <div class="d-flex">
-          <span class="gov-badge"
-            ><i class="bi bi-bar-chart-steps"></i> คาดการณ์ CO₂</span
-          >
+          <span class="gov-badge"><i class="bi bi-bar-chart-steps"></i> คาดการณ์ CO₂</span>
         </div>
       </div>
     </nav>
@@ -286,10 +45,7 @@
           <li class="breadcrumb-item">
             <a href="#" class="text-decoration-none text-secondary">หน้าแรก</a>
           </li>
-          <li
-            class="breadcrumb-item active text-success fw-semibold"
-            aria-current="page"
-          >
+          <li class="breadcrumb-item active text-success fw-semibold" aria-current="page">
             ระบบคาดการณ์การปล่อย CO₂ รายจังหวัด
           </li>
         </ol>
@@ -297,12 +53,9 @@
 
       <div class="text-center mb-4">
         <h1 class="display-6 fw-bold" style="color: #1b4d1b">
-          <i class="bi bi-cloud-sun-fill me-2"></i
-          >ระบบคาดการณ์ก๊าซคาร์บอนไดออกไซด์
+          <i class="bi bi-cloud-sun-fill me-2"></i>ระบบคาดการณ์ก๊าซคาร์บอนไดออกไซด์
         </h1>
-        <p class="text-muted">
-          คาดการณ์ปริมาณการปล่อย CO₂ จากข้อมูลประวัติและโมเดล Machine Learning
-        </p>
+        <p class="text-muted">คาดการณ์ปริมาณการปล่อย CO₂ จากข้อมูลประวัติและโมเดล Machine Learning</p>
       </div>
 
       <div class="row justify-content-center">
@@ -310,95 +63,46 @@
           <div class="card card-custom p-4 upload-area">
             <div class="d-flex align-items-center mb-2">
               <i class="bi bi-upload fs-3 me-2 text-success"></i>
-              <h5 class="card-title mb-0 fw-semibold">
-                นำเข้าข้อมูลปีปัจจุบัน
-              </h5>
+              <h5 class="card-title mb-0 fw-semibold">นำเข้าข้อมูลปีปัจจุบัน</h5>
             </div>
-            <p class="text-muted small">
-              รูปแบบไฟล์ <code>.csv</code> ต้องมีคอลัมน์:
-              <code>province, CO2_tonnes</code> (และ <code>year</code> ถ้ามี)
-            </p>
+        
 
             <div class="mb-3">
-              <label class="form-label fw-semibold" for="nYearsInput"
-                >จำนวนปีที่ต้องการทำนาย</label
-              >
+              <label class="form-label fw-semibold" for="nYearsInput">จำนวนปีที่ต้องการทำนาย</label>
               <div class="d-flex align-items-center gap-2">
-                <input
-                  type="number"
-                  id="nYearsInput"
-                  class="n-years-input"
-                  min="1"
-                  max="10"
-                  value="1"
-                  placeholder="1–10"
-                />
+                <input type="number" id="nYearsInput" class="n-years-input" min="1" max="10" value="1" placeholder="1–10" />
                 <span class="text-muted small">ปี</span>
               </div>
             </div>
 
             <div class="mb-3">
-              <label class="form-label fw-semibold"
-                >ช่วงปีข้อมูลย้อนหลังที่ใช้เทรนโมเดล</label
-              >
+              <label class="form-label fw-semibold">ช่วงปีข้อมูลย้อนหลังที่ใช้เทรนโมเดล</label>
               <div class="d-flex align-items-center gap-2">
-                <input
-                  type="number"
-                  id="startYearInput"
-                  class="form-control"
-                  placeholder="ค.ศ. เริ่มต้น"
-                  min="2000"
-                  max="2022"
-                  value="2000"
-                  style="width: 120px"
-                />
+                <input type="number" id="startYearInput" class="form-control" placeholder="ค.ศ. เริ่มต้น" min="2000" max="2022" value="2000" style="width: 120px" />
                 <span>ถึง</span>
-                <input
-                  type="number"
-                  id="endYearInput"
-                  class="form-control"
-                  placeholder="ค.ศ. สิ้นสุด"
-                  min="2000"
-                  max="2022"
-                  value="2022"
-                  style="width: 120px"
-                />
+                <input type="number" id="endYearInput" class="form-control" placeholder="ค.ศ. สิ้นสุด" min="2000" max="2022" value="2022" style="width: 120px" />
               </div>
             </div>
 
+            <select id="modelSelect" class="form-select mb-3">
+              <option value="gnn">Graph Wavenet GNN</option>
+            </select>
+
             <div class="mb-3 form-check">
-              <input
-                type="checkbox"
-                class="form-check-input"
-                id="useNewDataCheck"
-              />
-              <label class="form-check-label fw-semibold" for="useNewDataCheck"
-                >ฉันมีข้อมูลปีล่าสุด (2023 หรือใหม่กว่า)</label
-              >
+              <input type="checkbox" class="form-check-input" id="useNewDataCheck" />
+              <label class="form-check-label fw-semibold" for="useNewDataCheck">ฉันมีข้อมูลปีล่าสุด (2023 หรือใหม่กว่า)</label>
             </div>
-            <input
-              type="file"
-              id="fileInput"
-              class="form-control mb-3"
-              accept=".csv"
-              style="display: none"
-            />
-            <button
-              type="button"
-              id="uploadBtn"
-              class="btn btn-gov-primary w-100 py-2"
-            >
+            <input type="file" id="fileInput" class="form-control mb-3" accept=".csv" style="display: none" />
+            
+            <button type="button" id="uploadBtn" class="btn btn-gov-primary w-100 py-2">
               <i class="bi bi-graph-up"></i> เริ่มคาดการณ์
             </button>
+
             <div id="loading" class="loading text-center mt-3">
               <div class="spinner-border text-success" role="status"></div>
               <p class="mt-2">กำลังประมวลผลข้อมูลด้วยโมเดล XGBoost...</p>
             </div>
-            <div
-              id="pageError"
-              class="error-msg text-center mt-2"
-              style="display: none"
-            ></div>
+            <div id="pageError" class="error-msg text-center mt-2" style="display: none"></div>
           </div>
         </div>
       </div>
@@ -407,8 +111,7 @@
         <div class="card card-custom">
           <div class="card-header bg-white border-bottom-0 pt-3">
             <h5 class="mb-0 fw-bold text-success">
-              <i class="bi bi-clipboard-data me-2"></i
-              >ผลการประเมินความแม่นยำของโมเดล
+              <i class="bi bi-clipboard-data me-2"></i>ผลการประเมินความแม่นยำของโมเดล
             </h5>
             <small class="text-muted">ประเมินจากข้อมูล 3 ปีล่าสุด</small>
           </div>
@@ -422,12 +125,7 @@
             <h5 class="mb-0 fw-bold text-success">
               <i class="bi bi-calendar-check me-2"></i> ผลคาดการณ์การปล่อย CO₂
             </h5>
-            <small class="text-muted"
-              >ช่วงปีที่คาดการณ์:
-              <span id="predictionYearRange" class="fw-semibold text-success"
-                >-</span
-              ></small
-            >
+            <small class="text-muted">ช่วงปีที่คาดการณ์: <span id="predictionYearRange" class="fw-semibold text-success">-</span></small>
           </div>
           <div class="card-body">
             <div class="row g-3 mb-3">
@@ -441,9 +139,7 @@
               <div class="col-md-6">
                 <div class="stats-card">
                   <i class="bi bi-flag-fill fs-1 text-success"></i>
-                  <div class="mt-2 text-secondary">
-                    ผลรวมทั้งประเทศ (ทุกปีรวมกัน)
-                  </div>
+                  <div class="mt-2 text-secondary">ผลรวมทั้งประเทศ (ทุกปีรวมกัน)</div>
                   <div class="total-co2" id="totalCo2Value">-</div>
                   <span>ตัน CO₂</span>
                 </div>
@@ -469,54 +165,22 @@
           </div>
 
           <div class="card-footer bg-white border-top-0">
-            <div
-              class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2 mb-3"
-            >
-              <div class="section-title mt-0 mb-0">
-                แนวโน้มการปล่อย CO₂ รายจังหวัด
-              </div>
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2 mb-3">
+              <div class="section-title mt-0 mb-0">แนวโน้มการปล่อย CO₂ รายจังหวัด</div>
             </div>
-
+            
             <div class="row mb-3">
               <div class="col-12">
-                <label class="form-label fw-semibold">
-                  <i class="bi bi-geo-alt-fill me-1"></i
-                  >เลือกจังหวัดที่ต้องการแสดงในกราฟ
-                </label>
+                <label class="form-label fw-semibold"><i class="bi bi-geo-alt-fill me-1"></i>เลือกจังหวัดที่ต้องการแสดงในกราฟ</label>
                 <div class="border rounded p-2 bg-light">
-                  <input
-                    type="text"
-                    id="provinceSearch"
-                    class="form-control form-control-sm mb-2"
-                    placeholder="🔍 ค้นหาจังหวัด..."
-                  />
+                  <input type="text" id="provinceSearch" class="form-control form-control-sm mb-2" placeholder="🔍 ค้นหาจังหวัด..." />
                   <div id="provinceCheckboxList"></div>
                   <div class="d-flex gap-2 mt-2">
-                    <button
-                      type="button"
-                      id="selectAllProvincesBtn"
-                      class="btn btn-sm btn-outline-secondary"
-                    >
-                      เลือกทั้งหมด
-                    </button>
-                    <button
-                      type="button"
-                      id="clearAllProvincesBtn"
-                      class="btn btn-sm btn-outline-secondary"
-                    >
-                      ล้างทั้งหมด
-                    </button>
-                    <button
-                      type="button"
-                      id="selectTop5CheckboxBtn"
-                      class="btn btn-sm btn-outline-success"
-                    >
-                      Top 5
-                    </button>
+                    <button type="button" id="selectAllProvincesBtn" class="btn btn-sm btn-outline-secondary">เลือกทั้งหมด</button>
+                    <button type="button" id="clearAllProvincesBtn" class="btn btn-sm btn-outline-secondary">ล้างทั้งหมด</button>
+                    <button type="button" id="selectTop5CheckboxBtn" class="btn btn-sm btn-outline-success">Top 5</button>
                   </div>
-                  <small class="text-muted"
-                    >ติ๊กจังหวัดที่ต้องการดู กราฟจะอัปเดตทันที</small
-                  >
+                  <small class="text-muted">ติ๊กจังหวัดที่ต้องการดู กราฟจะอัปเดตทันที</small>
                 </div>
               </div>
             </div>
@@ -524,45 +188,52 @@
             <div class="row mb-3">
               <div class="col-12">
                 <div class="alert alert-success py-2 px-3 mb-0">
-                  <i class="bi bi-info-circle-fill me-1"></i>
-                  <small>เส้นทึบ = ข้อมูลประวัติ, เส้นประ = ค่าคาดการณ์</small>
+                  <i class="bi bi-info-circle-fill me-1"></i><small>เส้นทึบ = ข้อมูลประวัติ, เส้นประ = ค่าคาดการณ์</small>
                 </div>
               </div>
             </div>
 
-            <canvas
-              id="top5Chart"
-              width="400"
-              height="200"
-              style="max-height: 320px"
-            ></canvas>
+            <canvas id="top5Chart" width="400" height="200" style="max-height: 320px"></canvas>
 
-            <!-- ========== กราฟรวมทั้งประเทศ ========= -->
             <div class="total-chart-container">
-              <div
-                class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2 mb-3"
-              >
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2 mb-3">
                 <div class="section-title mt-0 mb-0">
-                  <i class="bi bi-bar-chart-line me-2"></i>แนวโน้มการปล่อย CO₂
-                  รวมทั้งประเทศ
+                  <i class="bi bi-bar-chart-line me-2"></i>แนวโน้มการปล่อย CO₂ รวมทั้งประเทศ
                 </div>
-                <div class="d-flex gap-3">
-                  <span
-                    ><span style="color: #0d6efd">●</span> ข้อมูลประวัติ
-                    (เส้นทึบ)</span
-                  >
-                  <span
-                    ><span style="color: #dc3545">●</span> ค่าคาดการณ์
-                    (เส้นประ)</span
-                  >
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                  <span><span style="color: #0d6efd">●</span> ข้อมูลประวัติ (เส้นทึบ)</span>
+                  <span><span style="color: #dc3545">●</span> ค่าคาดการณ์ (เส้นประ)</span>
+                  <span id="edgarLegend" style="display: none"><span style="color: #fd7e14">●</span> EDGAR (เส้นทึบ)</span>
+                  <span id="gcaLegend" style="display: none"><span style="color: #28a745">●</span> GCA (เส้นทึบ)</span>
+                  <button type="button" id="toggleEdgarBtn" class="btn btn-sm" style="background-color: #fd7e14; color: #fff; font-weight: 600; border: none; border-radius: 20px; padding: 4px 14px;">
+                    <i class="bi bi-database-add me-1"></i>แสดงค่า EDGAR
+                  </button>
+                  <button type="button" id="toggleGcaBtn" class="btn btn-sm" style="background-color: #28a745; color: #fff; font-weight: 600; border: none; border-radius: 20px; padding: 4px 14px;">
+                    <i class="bi bi-database-add me-1"></i>แสดงค่า GCA
+                  </button>
                 </div>
               </div>
-              <canvas
-                id="totalCountryChart"
-                width="400"
-                height="200"
-                style="max-height: 300px"
-              ></canvas>
+              <canvas id="totalCountryChart" width="400" height="200" style="max-height: 300px"></canvas>
+            </div>
+
+            <!-- ══ ปัจจัยภายนอก (External Factors) ══ -->
+            <div class="total-chart-container" id="externalSection">
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                <div class="section-title mt-0 mb-0">
+                  <i class="bi bi-globe2 me-2"></i>ปัจจัยภายนอก — การปล่อย CO₂ ระดับประเทศ (แยกภาคส่วน)
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap" id="externalToggleBar">
+                  <!-- ปุ่ม toggle sector จะถูกสร้างโดย JS -->
+                </div>
+              </div>
+              <div class="alert alert-success py-2 px-3 mb-3" style="font-size: 0.85rem;">
+                <i class="bi bi-info-circle-fill me-1"></i>
+                ข้อมูล <strong>ปัจจัยภายนอก</strong> — แท่งสีบวก = ภาคปล่อย CO₂ | แท่งสีเขียวใต้แกน = ป่าไม้ดูดซับ | เส้นทึบ = ยอดสุทธิรวมป่าไม้ | เส้นประ = รวมก่อนหักดูดซับ
+              </div>
+              <div class="row g-3 mb-3" id="externalKpiCards">
+                <!-- KPI cards จะถูกสร้างโดย JS -->
+              </div>
+              <canvas id="externalFactorsChart" width="400" height="200" style="max-height: 340px"></canvas>
             </div>
           </div>
         </div>
@@ -573,12 +244,8 @@
       <div class="container">
         <div class="row">
           <div class="col-md-6">
-            <i class="bi bi-building me-1"></i>
-            กรมการเปลี่ยนแปลงสภาพภูมิอากาศ<br />
-            <small
-              >49 ซอย 30 ถนนพระรามที่ 6 แขวงพญาไท เขตพญาไท กรุงเทพมหานคร
-              10400</small
-            >
+            <i class="bi bi-building me-1"></i> กรมการเปลี่ยนแปลงสภาพภูมิอากาศ<br />
+            <small>49 ซอย 30 ถนนพระรามที่ 6 แขวงพญาไท เขตพญาไท กรุงเทพมหานคร 10400</small>
           </div>
           <div class="col-md-6 text-md-end">
             <small>© กรมการเปลี่ยนแปลงสภาพภูมิอากาศ</small>
@@ -587,603 +254,46 @@
       </div>
     </footer>
 
-    <script>
-      (function () {
-        // ลงทะเบียน annotation plugin (ถ้าจำเป็น)
-        if (typeof Chart !== "undefined" && Chart.register) {
-          // chartjs-plugin-annotation จะลงทะเบียนตัวเองอัตโนมัติ
-        }
+    <button id="mapPresBtn"><i class="bi bi-map-fill"></i> แผนที่ CO₂</button>
+    <div id="mapPresOverlay">
+      <div class="mp-header">
+        <div class="mp-header-title">
+          <i class="bi bi-tree-fill" style="color: #c9a03d"></i> การกระจายตัวของ CO₂ รายจังหวัด — กรมการเปลี่ยนแปลงสภาพภูมิอากาศ
+        </div>
+        <button class="mp-close-btn" id="mapPresClose">
+          <i class="bi bi-x-lg me-1"></i>ปิด
+        </button>
+      </div>
+      <div class="mp-year-bar" id="mpYearBar"></div>
+      <div class="mp-body">
+        <div class="mp-map-pane">
+          <svg id="thaiMapSvg" viewBox="0 0 560 980" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="mp-legend">
+            <div class="mp-legend-title">ปริมาณ CO₂</div>
+            <div class="mp-legend-bar"></div>
+            <div class="mp-legend-labels">
+              <span>ต่ำ</span><span>ปานกลาง</span><span>สูง</span>
+            </div>
+          </div>
+        </div>
+        <div class="mp-side">
+          <div class="mp-kpi-strip" id="mpKpiStrip"></div>
+          <div class="mp-rank-header"><i class="bi bi-trophy-fill me-1"></i>จังหวัดปล่อย CO₂ สูงสุด</div>
+          <div class="mp-rank-scroll" id="mpRankScroll"></div>
+        </div>
+      </div>
+      <div class="mp-footer">
+        <span><i class="bi bi-shield-check me-1"></i>โมเดล Graph WaveNet GNN</span>
+        <span id="mpTimestamp"></span>
+      </div>
+    </div>
+    
+    <div id="mapTooltip">
+      <div class="tt-prov" id="ttProv"></div>
+      <div class="tt-val" id="ttVal"></div>
+      <div class="tt-rank" id="ttRank"></div>
+    </div>
 
-        let currentPredictionData = [];
-        let currentHistoricalData = [];
-        let allYearsList = [];
-        let firstPredYearValue = null;
-        let chartInstance = null;
-        let totalChartInstance = null; // สำหรับกราฟรวม
-
-        const useNewDataCheck = document.getElementById("useNewDataCheck");
-        const fileInput = document.getElementById("fileInput");
-        const uploadBtn = document.getElementById("uploadBtn");
-        const loadingDiv = document.getElementById("loading");
-        const evalSection = document.getElementById("evalSection");
-        const predSection = document.getElementById("predSection");
-        const pageErrorDiv = document.getElementById("pageError");
-        const provinceCheckboxContainer = document.getElementById(
-          "provinceCheckboxList",
-        );
-        const provinceSearchInput = document.getElementById("provinceSearch");
-        const selectAllBtn = document.getElementById("selectAllProvincesBtn");
-        const clearAllBtn = document.getElementById("clearAllProvincesBtn");
-        const selectTop5CheckboxBtn = document.getElementById(
-          "selectTop5CheckboxBtn",
-        );
-        const nYearsInput = document.getElementById("nYearsInput");
-        const startYearInput = document.getElementById("startYearInput");
-        const endYearInput = document.getElementById("endYearInput");
-
-        let uploadInProgress = false;
-        let allProvinceNames = [];
-
-        function renderProvinceCheckboxes(provinces) {
-          allProvinceNames = provinces.sort((a, b) => a.localeCompare(b, "th"));
-          provinceCheckboxContainer.innerHTML = "";
-          allProvinceNames.forEach((prov) => {
-            const div = document.createElement("div");
-            div.className = "form-check province-check-item";
-            div.innerHTML = `
-              <input class="form-check-input" type="checkbox" value="${prov}" id="chk_${prov.replace(/\s+/g, "_")}">
-              <label class="form-check-label" for="chk_${prov.replace(/\s+/g, "_")}">${prov}</label>
-            `;
-            provinceCheckboxContainer.appendChild(div);
-          });
-          document
-            .querySelectorAll(".province-check-item input[type=checkbox]")
-            .forEach((cb) => {
-              cb.addEventListener("change", updateChartFromCheckboxes);
-            });
-        }
-
-        function filterCheckboxes(searchTerm) {
-          const items = provinceCheckboxContainer.querySelectorAll(
-            ".province-check-item",
-          );
-          const lowerTerm = searchTerm.toLowerCase();
-          items.forEach((item) => {
-            const label = item.querySelector("label").textContent.toLowerCase();
-            item.style.display = label.includes(lowerTerm) ? "flex" : "none";
-          });
-        }
-
-        function getSelectedProvincesFromCheckboxes() {
-          return Array.from(
-            provinceCheckboxContainer.querySelectorAll(
-              "input[type=checkbox]:checked",
-            ),
-          ).map((cb) => cb.value);
-        }
-
-        function setCheckboxesSelection(provinceArray) {
-          provinceCheckboxContainer
-            .querySelectorAll("input[type=checkbox]")
-            .forEach((cb) => {
-              cb.checked = provinceArray.includes(cb.value);
-            });
-        }
-
-        function updateChartFromCheckboxes() {
-          const selected = getSelectedProvincesFromCheckboxes();
-          if (selected.length === 0) {
-            setCheckboxesSelection(allProvinceNames);
-            redrawChart(allProvinceNames);
-          } else {
-            redrawChart(selected);
-          }
-        }
-
-        function persistLog(msg, type = "info") {
-          const logs = JSON.parse(localStorage.getItem("app_logs") || "[]");
-          logs.push({ time: new Date().toISOString(), type, message: msg });
-          if (logs.length > 50) logs.shift();
-          localStorage.setItem("app_logs", JSON.stringify(logs));
-          console.log(`[${type}] ${msg}`);
-        }
-
-        function getTop5Provinces(predictionData) {
-          const byProvince = {};
-          predictionData.forEach((d) => {
-            byProvince[d.province] = (byProvince[d.province] || 0) + d.preds;
-          });
-          return Object.entries(byProvince)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 5)
-            .map((e) => e[0]);
-        }
-
-        function redrawChart(selectedProvinces) {
-          const canvas = document.getElementById("top5Chart");
-          if (!canvas) return;
-          const ctx = canvas.getContext("2d");
-
-          if (!selectedProvinces || selectedProvinces.length === 0) {
-            if (chartInstance) chartInstance.destroy();
-            chartInstance = null;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.font = "16px Sarabun, sans-serif";
-            ctx.fillStyle = "#999";
-            ctx.textAlign = "center";
-            ctx.fillText(
-              "กรุณาเลือกอย่างน้อย 1 จังหวัดเพื่อแสดงกราฟ",
-              canvas.width / 2,
-              canvas.height / 2,
-            );
-            return;
-          }
-          if (!currentPredictionData.length || !allYearsList.length) return;
-
-          const colors = [
-            "#2E7D32",
-            "#1565C0",
-            "#E65100",
-            "#6A1B9A",
-            "#00695C",
-            "#B71C1C",
-            "#00838F",
-            "#F57F17",
-            "#4A148C",
-            "#827717",
-          ];
-          const datasets = selectedProvinces.map((prov, i) => {
-            const data = allYearsList.map((yr) => {
-              const h = currentHistoricalData.find(
-                (d) => d.province === prov && d.year === yr,
-              );
-              if (h) return h.actual / 1_000_000;
-              const p = currentPredictionData.find(
-                (d) => d.province === prov && d.year === yr,
-              );
-              if (p) return p.preds / 1_000_000;
-              return null;
-            });
-            return {
-              label: prov,
-              data,
-              borderColor: colors[i % colors.length],
-              backgroundColor: "transparent",
-              borderWidth: 3,
-              pointRadius: (c) =>
-                allYearsList[c.dataIndex] >= firstPredYearValue ? 5 : 2,
-              pointBackgroundColor: (c) =>
-                allYearsList[c.dataIndex] >= firstPredYearValue
-                  ? colors[i % colors.length]
-                  : "#fff",
-              pointBorderColor: colors[i % colors.length],
-              pointBorderWidth: 2,
-              tension: 0.2,
-              // เปลี่ยน: เส้นประสำหรับช่วงคาดการณ์, เส้นทึบสำหรับช่วงประวัติ
-              segment: {
-                borderDash: (c) => {
-                  const year = allYearsList[c.p0DataIndex];
-                  return year >= firstPredYearValue ? [5, 3] : undefined;
-                },
-              },
-            };
-          });
-
-          if (chartInstance) chartInstance.destroy();
-          chartInstance = new Chart(ctx, {
-            type: "line",
-            data: { labels: allYearsList, datasets },
-            options: {
-              responsive: true,
-              maintainAspectRatio: true,
-              scales: {
-                y: {
-                  beginAtZero: false,
-                  title: { display: true, text: "ล้านตัน CO₂" },
-                  ticks: {
-                    callback: (v) =>
-                      v.toLocaleString(undefined, { maximumFractionDigits: 2 }),
-                  },
-                },
-                x: { title: { display: true, text: "ปี" } },
-              },
-              plugins: {
-                tooltip: {
-                  callbacks: {
-                    label: (c) => {
-                      const yr = allYearsList[c.dataIndex];
-                      const t =
-                        yr >= firstPredYearValue ? "คาดการณ์" : "ประวัติ";
-                      return `${c.dataset.label} (${t}): ${c.raw.toLocaleString(undefined, { maximumFractionDigits: 2 })} ล้านตัน`;
-                    },
-                  },
-                },
-              },
-            },
-          });
-        }
-
-        // ---------- ฟังก์ชันวาดกราฟรวมทั้งประเทศ ----------
-        function drawTotalChart() {
-          const canvas = document.getElementById("totalCountryChart");
-          if (!canvas) return;
-          const ctx = canvas.getContext("2d");
-
-          if (!currentHistoricalData.length && !currentPredictionData.length) {
-            if (totalChartInstance) totalChartInstance.destroy();
-            totalChartInstance = null;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.font = "16px Sarabun, sans-serif";
-            ctx.fillStyle = "#999";
-            ctx.textAlign = "center";
-            ctx.fillText(
-              "ไม่มีข้อมูลสำหรับแสดงกราฟรวม",
-              canvas.width / 2,
-              canvas.height / 2,
-            );
-            return;
-          }
-
-          const histTotals = {};
-          currentHistoricalData.forEach((d) => {
-            histTotals[d.year] =
-              (histTotals[d.year] || 0) + (Number(d.actual) || 0);
-          });
-          const predTotals = {};
-          currentPredictionData.forEach((d) => {
-            predTotals[d.year] =
-              (predTotals[d.year] || 0) + (Number(d.preds) || 0);
-          });
-
-          const allYears = [
-            ...new Set([
-              ...Object.keys(histTotals).map(Number),
-              ...Object.keys(predTotals).map(Number),
-            ]),
-          ].sort((a, b) => a - b);
-
-          const predYears = Object.keys(predTotals).map(Number);
-          const firstPredYear = predYears.length
-            ? Math.min(...predYears)
-            : null;
-
-          // สร้างข้อมูลพื้นฐาน
-          let histData = allYears.map((yr) =>
-            histTotals[yr] ? histTotals[yr] / 1_000_000 : null,
-          );
-          let predData = allYears.map((yr) =>
-            predTotals[yr] ? predTotals[yr] / 1_000_000 : null,
-          );
-
-          // ---- เพิ่มจุดเชื่อมต่อระหว่างชุดข้อมูล ----
-          // หากมีทั้งข้อมูลประวัติและคาดการณ์ และปีต่อเนื่องกัน
-          if (
-            Object.keys(histTotals).length &&
-            Object.keys(predTotals).length
-          ) {
-            const lastHistYear = Math.max(
-              ...Object.keys(histTotals).map(Number),
-            );
-            const firstPredYearVal = Math.min(
-              ...Object.keys(predTotals).map(Number),
-            );
-
-            // หากปีคาดการณ์เริ่มหลังจากปีประวัติ 1 ปี (เช่น 2022 → 2023)
-            if (firstPredYearVal === lastHistYear + 1) {
-              // หาตำแหน่งของปี boundary ใน allYears
-              const boundaryIndex = allYears.indexOf(lastHistYear);
-              if (boundaryIndex !== -1) {
-                // เพิ่มค่าที่ปี boundary ลงใน predData เพื่อให้เส้นเชื่อมต่อ
-                // ใช้ค่าจาก histTotals เพื่อให้เส้นต่อเนื่อง (หรืออาจใช้ค่าจาก predTotals ถ้ามี)
-                const boundaryValue = histTotals[lastHistYear] / 1_000_000;
-                predData[boundaryIndex] = boundaryValue;
-              }
-            }
-          }
-
-          const datasets = [
-            {
-              label: "ข้อมูลประวัติ",
-              data: histData,
-              borderColor: "#0d6efd",
-              backgroundColor: "transparent",
-              borderWidth: 3,
-              pointRadius: 3,
-              pointBackgroundColor: "#0d6efd",
-              tension: 0.2,
-              spanGaps: true,
-            },
-            {
-              label: "ค่าคาดการณ์",
-              data: predData,
-              borderColor: "#dc3545",
-              backgroundColor: "transparent",
-              borderWidth: 3,
-              borderDash: [5, 3],
-              pointRadius: 4,
-              pointBackgroundColor: "#dc3545",
-              tension: 0.2,
-              spanGaps: true,
-            },
-          ];
-
-          const annotation = firstPredYear
-            ? {
-                annotations: {
-                  predLine: {
-                    type: "line",
-                    xMin: firstPredYear,
-                    xMax: firstPredYear,
-                    borderColor: "#6c757d",
-                    borderWidth: 2,
-                    borderDash: [3, 3],
-                    label: {
-                      content: "เริ่มคาดการณ์",
-                      display: true,
-                      position: "top",
-                      backgroundColor: "rgba(0,0,0,0.7)",
-                      color: "white",
-                      font: { size: 11 },
-                    },
-                  },
-                },
-              }
-            : {};
-
-          if (totalChartInstance) totalChartInstance.destroy();
-
-          totalChartInstance = new Chart(ctx, {
-            type: "line",
-            data: { labels: allYears, datasets },
-            options: {
-              responsive: true,
-              maintainAspectRatio: true,
-              interaction: { intersect: false, mode: "index" },
-              scales: {
-                y: {
-                  beginAtZero: false,
-                  title: { display: true, text: "ล้านตัน CO₂" },
-                  ticks: {
-                    callback: (v) =>
-                      v.toLocaleString(undefined, { maximumFractionDigits: 2 }),
-                  },
-                },
-                x: { title: { display: true, text: "ปี" } },
-              },
-              plugins: {
-                tooltip: {
-                  callbacks: {
-                    label: (ctx) => {
-                      const val = ctx.raw;
-                      const year = allYears[ctx.dataIndex];
-                      const type =
-                        firstPredYear !== null && year >= firstPredYear
-                          ? "คาดการณ์"
-                          : "ประวัติ";
-                      return `${ctx.dataset.label}: ${val.toLocaleString(undefined, { maximumFractionDigits: 2 })} ล้านตัน`;
-                    },
-                  },
-                },
-                annotation: annotation,
-              },
-            },
-          });
-        }
-
-        selectAllBtn.addEventListener("click", () => {
-          setCheckboxesSelection(allProvinceNames);
-          redrawChart(allProvinceNames);
-        });
-        clearAllBtn.addEventListener("click", () => {
-          setCheckboxesSelection([]);
-          redrawChart([]);
-        });
-        selectTop5CheckboxBtn.addEventListener("click", () => {
-          if (!currentPredictionData.length) return;
-          const top5 = getTop5Provinces(currentPredictionData);
-          setCheckboxesSelection(top5);
-          redrawChart(top5);
-        });
-        provinceSearchInput.addEventListener("input", (e) =>
-          filterCheckboxes(e.target.value),
-        );
-        useNewDataCheck.addEventListener("change", function () {
-          fileInput.style.display = this.checked ? "block" : "none";
-          if (!this.checked) fileInput.value = "";
-        });
-
-        uploadBtn.addEventListener("click", async (e) => {
-          e.preventDefault();
-          if (uploadInProgress) return;
-          pageErrorDiv.style.display = "none";
-
-          const useNew = useNewDataCheck.checked;
-          let file = null;
-          if (useNew) {
-            file = fileInput.files[0];
-            if (!file) {
-              alert("กรุณาเลือกไฟล์ CSV สำหรับปี 2023 ขึ้นไป");
-              return;
-            }
-          }
-
-          let nYears = parseInt(nYearsInput.value, 10);
-          if (isNaN(nYears) || nYears < 1) nYears = 1;
-          if (nYears > 10) nYears = 10;
-          nYearsInput.value = nYears;
-
-          const formData = new FormData();
-          if (useNew && file) formData.append("file", file);
-
-          uploadInProgress = true;
-          loadingDiv.style.display = "block";
-          evalSection.style.display = "none";
-          predSection.style.display = "none";
-          uploadBtn.disabled = true;
-
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 180000);
-
-          try {
-            const startYear = startYearInput.value;
-            const endYear = endYearInput.value;
-            let queryParams = `n_years=${nYears}`;
-            if (startYear) queryParams += `&start_year=${startYear}`;
-            if (endYear) queryParams += `&end_year=${endYear}`;
-
-            persistLog(`Sending request to /predict?${queryParams}`);
-            const response = await fetch(`/predict?${queryParams}`, {
-              method: "POST",
-              body: formData,
-              signal: controller.signal,
-            });
-            clearTimeout(timeoutId);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const data = await response.json();
-            persistLog("Response received");
-
-            const evalSummaryDiv = document.getElementById("evalSummary");
-            if (data.evaluation_summary) {
-              evalSummaryDiv.innerHTML = `
-                <div class="row text-center">
-                  <div class="col-sm-6 mb-2">
-                    <span class="badge bg-success fs-6 p-2">MAPE</span>
-                    <h3 class="mt-2 text-success">${(data.evaluation_summary.mape * 100).toFixed(2)}%</h3>
-                    <small>Mean Absolute Percentage Error</small>
-                  </div>
-                  <div class="col-sm-6 mb-2">
-                    <span class="badge bg-primary fs-6 p-2">R²</span>
-                    <h3 class="mt-2 text-primary">${data.evaluation_summary.r2.toFixed(4)}</h3>
-                    <small>Coefficient of Determination</small>
-                  </div>
-                </div>`;
-            } else {
-              evalSummaryDiv.innerHTML =
-                '<div class="alert alert-warning">ไม่สามารถคำนวณค่าประเมินโมเดล</div>';
-            }
-
-            if (data.prediction && data.prediction.length) {
-              currentPredictionData = data.prediction;
-              currentHistoricalData = data.historical || [];
-
-              const predYears = [
-                ...new Set(data.prediction.map((r) => r.year)),
-              ].sort();
-              const histYears = currentHistoricalData.length
-                ? [...new Set(currentHistoricalData.map((r) => r.year))]
-                : [];
-              allYearsList = [...new Set([...histYears, ...predYears])].sort(
-                (a, b) => a - b,
-              );
-              firstPredYearValue = Math.min(...predYears);
-
-              displayTable("predTable", data.prediction, [
-                "province",
-                "year",
-                "preds",
-              ]);
-
-              const yearTotals = {};
-              data.prediction.forEach((r) => {
-                yearTotals[r.year] =
-                  (yearTotals[r.year] || 0) + (Number(r.preds) || 0);
-              });
-              const years = Object.keys(yearTotals).sort();
-              document.getElementById("yearSummaryCards").innerHTML = years
-                .map(
-                  (yr) => `
-                <div class="year-card">
-                  <div class="yr-label">ปี ${yr}</div>
-                  <div class="yr-value">${yearTotals[yr].toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
-                  <div class="yr-unit">ตัน CO₂</div>
-                </div>`,
-                )
-                .join("");
-
-              const totalCO2 = Object.values(yearTotals).reduce(
-                (s, v) => s + v,
-                0,
-              );
-              document.getElementById("totalCo2Value").innerHTML =
-                totalCO2.toLocaleString(undefined, {
-                  maximumFractionDigits: 0,
-                });
-
-              const yearRangeText =
-                years.length === 1
-                  ? `${years[0]}`
-                  : `${years[0]} – ${years[years.length - 1]}`;
-              document.getElementById("predictionYear").textContent =
-                yearRangeText;
-              document.getElementById("predictionYearRange").textContent =
-                yearRangeText;
-
-              const allProvinces = [
-                ...new Set(data.prediction.map((r) => r.province)),
-              ];
-              renderProvinceCheckboxes(allProvinces);
-
-              const top5Default = getTop5Provinces(data.prediction);
-              setCheckboxesSelection(top5Default);
-              redrawChart(top5Default);
-
-              // วาดกราฟรวม
-              drawTotalChart();
-
-              evalSection.style.display = "block";
-              predSection.style.display = "block";
-            } else {
-              throw new Error("ไม่มีข้อมูลการทำนาย");
-            }
-          } catch (error) {
-            persistLog(`Error: ${error.message}`, "error");
-            let msg =
-              error.name === "AbortError"
-                ? "การเชื่อมต่อใช้เวลานานเกินไป"
-                : error.message.includes("Failed to fetch")
-                  ? "ไม่สามารถเชื่อมต่อ Backend ได้"
-                  : error.message;
-            pageErrorDiv.style.display = "block";
-            pageErrorDiv.innerText = msg;
-            evalSection.style.display = "none";
-            predSection.style.display = "none";
-          } finally {
-            uploadInProgress = false;
-            loadingDiv.style.display = "none";
-            uploadBtn.disabled = false;
-          }
-        });
-
-        function displayTable(tableId, data, columns) {
-          const tbody = document.querySelector(`#${tableId} tbody`);
-          tbody.innerHTML = "";
-          data.forEach((row) => {
-            const tr = document.createElement("tr");
-            columns.forEach((col) => {
-              const td = document.createElement("td");
-              let val = row[col];
-              if (col === "preds") {
-                const num = Number(val);
-                val = !isNaN(num)
-                  ? num.toLocaleString(undefined, { maximumFractionDigits: 0 })
-                  : "-";
-              }
-              td.textContent = val;
-              tr.appendChild(td);
-            });
-            tbody.appendChild(tr);
-          });
-        }
-
-        window.addEventListener("beforeunload", (event) => {
-          if (uploadInProgress) {
-            event.preventDefault();
-            event.returnValue = "กำลังประมวลผลข้อมูล กรุณารอสักครู่";
-          }
-        });
-
-        persistLog("Page loaded");
-      })();
-    </script>
+    <script src="app.js"></script>
   </body>
 </html>
